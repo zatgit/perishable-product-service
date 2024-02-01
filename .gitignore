@@ -1,0 +1,7 @@
+/target/
+/.idea/
+/perishable-product-service.iml
+/ReadMe-secret.md
+/src/main/resources/data.*
+/src/test/
+/queries/

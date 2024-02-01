@@ -1,0 +1,11 @@
+*.md
+!README.md
+*/*/temp*
+temp?
+*.log
+*.db
+*.iml
+.gitignore
+.git/
+Dockerfile
+.dockerignore

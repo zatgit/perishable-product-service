@@ -1,0 +1,1926 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Perishable Product Service",
+    "description": "A RESTful API for tracking a grocery store's inventory of\nperishable goods developed with Java and Spring.",
+    "license": {
+      "name": "GPL 3",
+      "url": "https://www.gnu.org/licenses/gpl-3.0.en.html?ref=itsfoss.com#license-text"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Cache",
+      "description": "Cache management APIs"
+    },
+    {
+      "name": "Product",
+      "description": "Product management APIs"
+    },
+    {
+      "name": "Actuator",
+      "description": "Monitor and interact",
+      "externalDocs": {
+        "description": "Spring Boot Actuator Web API Documentation",
+        "url": "https://docs.spring.io/spring-boot/docs/current/actuator-api/html/"
+      }
+    }
+  ],
+  "paths": {
+    "/api/zmart/redis/create": {
+      "post": {
+        "tags": [
+          "Cache"
+        ],
+        "summary": "Create new Redis key-value pair",
+        "operationId": "createRedisKeyValuePair",
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "products::ProductInventoryServiceImpl,getAllProducts,100,sellBy,DESC,0": "<test value>"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Key-value pair created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "products::ProductInventoryServiceImpl,getAllProducts,100,sellBy,DESC,0": "<test value>"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/product/quality": {
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get products by quality",
+        "description": "Get all products matching given ``quality``&nbsp;and calculate values & dates based on days to offset (``dayOffset``) & ``qualityOperation``.\n#### DataView:\n<ul>\n<li>Where applicable, sort args apply to both parent product objects and nested stock items.</li>\n<li><i>Limit</i> applies to the total nested stock items across all product objects.</li>\n<li>If <i>dataView</i> or any of its properties are omitted, defaults are generated programmatically.</li>\n</ul>\n\n\n#### Quality Operations:\n\n<ul> <li><b>0</b>: <i>Quality</i> decrements daily by 1.\n Once the <i>sellByDate</i> has passed, <i>quality</i> degrades twice as fast.\n</li>\n<li><b>1</b>: <i>Quality</i> increments daily by 1 and continues incrementing by 1 after the\n<i>sellByDate</i> has passed.</li>\n <li><b>2</b>: <i>Quality</i> increments daily by 1.\n When 10 or fewer days remain until the <i>sellByDate</i>, <i>quality</i> increments daily by 2.\n After the <i>sellByDate</i> has passed, <i>quality</i> drops to 0.\n</li>\n<li><b>3</b>: <i>Quality</i> never decrements.</li>\n</ul>\n\nAn item's <code>quality</code> may never fall below 0.\n\nAn item's <code>sellBy</code> decrements daily by 1.",
+        "operationId": "getProductsByQuality",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductsByQualityRequest"
+              },
+              "examples": {
+                "Quality Request 1": {
+                  "description": "``dayOffset`` is given",
+                  "value": {
+                    "quality": 20,
+                    "dataView": {
+                      "dayOffset": 5,
+                      "limit": 100,
+                      "sortBy": "sellBy",
+                      "sortOrder": "DESC"
+                    }
+                  }
+                },
+                "Quality Request 2": {
+                  "description": "``dayOffset`` is *not* given",
+                  "value": {
+                    "quality": 20,
+                    "dataView": {
+                      "limit": 100,
+                      "sortBy": "sellBy",
+                      "sortOrder": "DESC"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Product(s) with matching ``quality`` found",
+            "content": {
+              "application/json;version=1.0.0": {
+                "examples": {
+                  "Quality Response 1": {
+                    "description": "Retrieves all products with the given ``quality`` and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` have decremented by 5.\n\n\nThe days between ``stockDate`` and ``futureDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "count": 2,
+                        "products": [
+                          {
+                            "itemName": "Moonberries",
+                            "itemCode": "MoonBerr",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "38422dcc-3f1a-4b70-abe8-6bd1222ca68c",
+                                "futureDate": "2077-01-28",
+                                "sellByDate": "2077-02-07",
+                                "stockDate": "2077-01-23",
+                                "currentDate": "2077-01-23",
+                                "sellBy": 10,
+                                "quality": 15
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Organic Spinach",
+                            "itemCode": "OrgSpinach",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "862ccf35-bbed-4803-aae0-5fc7e07c4d7f",
+                                "futureDate": "2077-01-28",
+                                "sellByDate": "2077-02-02",
+                                "stockDate": "2077-01-23",
+                                "currentDate": "2077-01-23",
+                                "sellBy": 5,
+                                "quality": 15
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "Quality Response 2": {
+                    "description": "Retrieves all products with the given ``quality`` and does *not* off set the current date.\n\n\nNote that there is *no* ``futureDate`` property\nand that ``quality`` & ``sellBy`` have *not* decremented.\n\n\nThe days between ``stockDate`` and ``currentDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "count": 2,
+                        "products": [
+                          {
+                            "itemName": "Moonberries",
+                            "itemCode": "MoonBerr",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "38422dcc-3f1a-4b70-abe8-6bd1222ca68c",
+                                "sellByDate": "2077-02-07",
+                                "stockDate": "2077-01-23",
+                                "currentDate": "2077-01-23",
+                                "sellBy": 15,
+                                "quality": 20
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Organic Spinach",
+                            "itemCode": "OrgSpinach",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "862ccf35-bbed-4803-aae0-5fc7e07c4d7f",
+                                "sellByDate": "2077-02-02",
+                                "stockDate": "2077-01-23",
+                                "currentDate": "2077-01-23",
+                                "sellBy": 10,
+                                "quality": 20
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No products found with matching ``quality``",
+            "content": {
+              "application/json;version=1.0.0": {
+                "example": {
+                  "data": {
+                    "count": 0,
+                    "products": []
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/product/item-name": {
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get product by itemName",
+        "description": "Get product matching given ``itemName``&nbsp;and calculate values & dates based on days to offset (``dayOffset``) & ``qualityOperation``.\n#### DataView:\n<ul>\n<li>Where applicable, sort args apply to both parent product objects and nested stock items.</li>\n<li><i>Limit</i> applies to the total nested stock items across all product objects.</li>\n<li>If <i>dataView</i> or any of its properties are omitted, defaults are generated programmatically.</li>\n</ul>\n\n\n#### Quality Operations:\n\n<ul> <li><b>0</b>: <i>Quality</i> decrements daily by 1.\n Once the <i>sellByDate</i> has passed, <i>quality</i> degrades twice as fast.\n</li>\n<li><b>1</b>: <i>Quality</i> increments daily by 1 and continues incrementing by 1 after the\n<i>sellByDate</i> has passed.</li>\n <li><b>2</b>: <i>Quality</i> increments daily by 1.\n When 10 or fewer days remain until the <i>sellByDate</i>, <i>quality</i> increments daily by 2.\n After the <i>sellByDate</i> has passed, <i>quality</i> drops to 0.\n</li>\n<li><b>3</b>: <i>Quality</i> never decrements.</li>\n</ul>\n\nAn item's <code>quality</code> may never fall below 0.\n\nAn item's <code>sellBy</code> decrements daily by 1.",
+        "operationId": "getProductByItemName",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductByItemNameRequest"
+              },
+              "examples": {
+                "ItemName Request 1": {
+                  "description": "``dayOffset`` is given",
+                  "value": {
+                    "itemName": "Moonberries",
+                    "dataView": {
+                      "dayOffset": 5,
+                      "limit": 100,
+                      "sortBy": "sellBy",
+                      "sortOrder": "DESC"
+                    }
+                  }
+                },
+                "ItemName Request 2": {
+                  "description": "``dayOffset`` is *not* given",
+                  "value": {
+                    "itemCode": "MoonBerr",
+                    "dataView": {
+                      "limit": 100,
+                      "sortBy": "sellBy",
+                      "sortOrder": "DESC"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Product with matching ``itemName`` found",
+            "content": {
+              "application/json;version=1.0.0": {
+                "examples": {
+                  "ItemName Response 1": {
+                    "description": "Retrieves product with the given ``itemName`` and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` have decremented by 5.\n\n\nThe days between ``stockDate`` and ``futureDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "product": {
+                          "itemName": "Moonberries",
+                          "itemCode": "MoonBerr",
+                          "qualityOperation": 0,
+                          "stock": [
+                            {
+                              "uuid": "38422dcc-3f1a-4b70-abe8-6bd1222ca68c",
+                              "futureDate": "2077-01-28",
+                              "sellByDate": "2077-02-07",
+                              "stockDate": "2077-01-23",
+                              "currentDate": "2077-01-23",
+                              "sellBy": 10,
+                              "quality": 15
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "ItemName Response 2": {
+                    "description": "Retrieves product with the given ``itemName`` and does *not* off set the current date.\n\n\nNote that there is *no* ``futureDate`` property\nand that ``quality`` & ``sellBy`` have *not* decremented.\n\n\nThe days between ``stockDate`` and ``currentDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "product": {
+                          "itemName": "Moonberries",
+                          "itemCode": "MoonBerr",
+                          "qualityOperation": 0,
+                          "stock": [
+                            {
+                              "uuid": "38422dcc-3f1a-4b70-abe8-6bd1222ca68c",
+                              "sellByDate": "2077-02-07",
+                              "stockDate": "2077-01-23",
+                              "currentDate": "2077-01-23",
+                              "sellBy": 15,
+                              "quality": 20
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No product found with matching ``itemName``",
+            "content": {
+              "application/json;version=1.0.0": {
+                "example": {
+                  "data": {
+                    "product": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/product/item-code": {
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get product by itemCode",
+        "description": "Get product matching given ``itemCode``&nbsp;and calculate values & dates based on days to offset (``dayOffset``) & ``qualityOperation``.\n#### DataView:\n<ul>\n<li>Where applicable, sort args apply to both parent product objects and nested stock items.</li>\n<li><i>Limit</i> applies to the total nested stock items across all product objects.</li>\n<li>If <i>dataView</i> or any of its properties are omitted, defaults are generated programmatically.</li>\n</ul>\n\n\n#### Quality Operations:\n\n<ul> <li><b>0</b>: <i>Quality</i> decrements daily by 1.\n Once the <i>sellByDate</i> has passed, <i>quality</i> degrades twice as fast.\n</li>\n<li><b>1</b>: <i>Quality</i> increments daily by 1 and continues incrementing by 1 after the\n<i>sellByDate</i> has passed.</li>\n <li><b>2</b>: <i>Quality</i> increments daily by 1.\n When 10 or fewer days remain until the <i>sellByDate</i>, <i>quality</i> increments daily by 2.\n After the <i>sellByDate</i> has passed, <i>quality</i> drops to 0.\n</li>\n<li><b>3</b>: <i>Quality</i> never decrements.</li>\n</ul>\n\nAn item's <code>quality</code> may never fall below 0.\n\nAn item's <code>sellBy</code> decrements daily by 1.",
+        "operationId": "getProductByItemCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductByItemCodeRequest"
+              },
+              "examples": {
+                "ItemCode Request 1": {
+                  "description": "``dayOffset`` is given",
+                  "value": {
+                    "itemCode": "MoonBerr",
+                    "dataView": {
+                      "dayOffset": 5,
+                      "limit": 100,
+                      "sortBy": "sellBy",
+                      "sortOrder": "DESC"
+                    }
+                  }
+                },
+                "ItemCode Request 2": {
+                  "description": "``dayOffset`` is *not* given",
+                  "value": {
+                    "itemCode": "MoonBerr",
+                    "dataView": {
+                      "limit": 100,
+                      "sortBy": "sellBy",
+                      "sortOrder": "DESC"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Product with matching itemCode found",
+            "content": {
+              "application/json;version=1.0.0": {
+                "examples": {
+                  "ItemCode Response 1": {
+                    "description": "Retrieves product with the given ``itemCode`` and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` have decremented by 5.\n\n\nThe days between ``stockDate`` and ``futureDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "product": {
+                          "itemName": "Moonberries",
+                          "itemCode": "MoonBerr",
+                          "qualityOperation": 0,
+                          "stock": [
+                            {
+                              "uuid": "38422dcc-3f1a-4b70-abe8-6bd1222ca68c",
+                              "futureDate": "2077-01-28",
+                              "sellByDate": "2077-02-07",
+                              "stockDate": "2077-01-23",
+                              "currentDate": "2077-01-23",
+                              "sellBy": 10,
+                              "quality": 15
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "ItemCode Response 2": {
+                    "description": "Retrieves product with the given ``itemCode`` and does *not* off set the current date.\n\n\nNote that there is *no* ``futureDate`` property\nand that ``quality`` & ``sellBy`` have *not* decremented.\n\n\nThe days between ``stockDate`` and ``currentDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "product": {
+                          "itemName": "Moonberries",
+                          "itemCode": "MoonBerr",
+                          "qualityOperation": 0,
+                          "stock": [
+                            {
+                              "uuid": "38422dcc-3f1a-4b70-abe8-6bd1222ca68c",
+                              "sellByDate": "2077-02-07",
+                              "stockDate": "2077-01-23",
+                              "currentDate": "2077-01-23",
+                              "sellBy": 15,
+                              "quality": 20
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No product found with matching ``itemCode``",
+            "content": {
+              "application/json;version=1.0.0": {
+                "example": {
+                  "data": {
+                    "product": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/product/id": {
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get product by id",
+        "description": "Get product matching given ``uuid``&nbsp;and calculate values & dates based on days to offset (``dayOffset``) & ``qualityOperation``.",
+        "operationId": "getProductById",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductByIdRequest"
+              },
+              "examples": {
+                "Id Request 1": {
+                  "description": "``dayOffset`` is given",
+                  "value": {
+                    "uuid": "b660d516-567b-46ed-8dc1-4afd1da2a8a0",
+                    "dayOffset": 5
+                  }
+                },
+                "Id Request 2": {
+                  "description": "``dayOffset`` is *not* given",
+                  "value": {
+                    "uuid": "b660d516-567b-46ed-8dc1-4afd1da2a8a0"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Product with matching ``uuid`` found",
+            "content": {
+              "application/json;version=1.0.0": {
+                "examples": {
+                  "Id Response 1": {
+                    "description": "Retrieves product with the given ``uuid`` and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` have decremented by 5.\n\n\nThe days between ``stockDate`` and ``futureDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "product": {
+                          "itemName": "3lb Ground Beef",
+                          "itemCode": "3lbGrBeef",
+                          "qualityOperation": 2,
+                          "stock": [
+                            {
+                              "uuid": "b660d516-567b-46ed-8dc1-4afd1da2a8a0",
+                              "futureDate": "2077-01-28",
+                              "sellByDate": "2077-02-07",
+                              "stockDate": "2077-01-23",
+                              "currentDate": "2077-01-23",
+                              "sellBy": 10,
+                              "quality": 15
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "Id Response 2": {
+                    "description": "Retrieves product with the given ``uuid`` and does *not* off set the current date.\n\n\nNote that there is *no* ``futureDate`` property\nand that ``quality`` & ``sellBy`` have *not* decremented.\n\n\nThe days between ``stockDate`` and ``currentDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "product": {
+                          "itemName": "3lb Ground Beef",
+                          "itemCode": "3lbGrBeef",
+                          "qualityOperation": 2,
+                          "stock": [
+                            {
+                              "uuid": "b660d516-567b-46ed-8dc1-4afd1da2a8a0",
+                              "sellByDate": "2077-02-07",
+                              "stockDate": "2077-01-23",
+                              "currentDate": "2077-01-23",
+                              "sellBy": 15,
+                              "quality": 10
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No product found with matching ``uuid``",
+            "content": {
+              "application/json;version=1.0.0": {
+                "example": {
+                  "data": {
+                    "product": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/product/create": {
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Create new product(s)",
+        "description": "Create new products in the inventory",
+        "operationId": "createProducts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductCreationRequest"
+              },
+              "examples": {
+                "Creation Request 1": {
+                  "description": "``quality`` is specified for each new inventory item separately",
+                  "value": {
+                    "products": [
+                      {
+                        "itemName": "Moonberries",
+                        "itemCode": "MoonBerr",
+                        "qualityOperation": 0,
+                        "stock": [
+                          {
+                            "sellBy": 15,
+                            "quality": 20
+                          },
+                          {
+                            "sellBy": 20,
+                            "quality": 25
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "Creation Request 2": {
+                  "description": "``quality`` is specified for all new inventory items with same value",
+                  "value": {
+                    "products": [
+                      {
+                        "itemName": "Moonberries",
+                        "itemCode": "MoonBerr",
+                        "quality": 20,
+                        "qualityOperation": 0,
+                        "stock": [
+                          {
+                            "sellBy": 15
+                          },
+                          {
+                            "sellBy": 20
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json;version=1.0.0": {
+                "example": {
+                  "data": {
+                    "count": 1,
+                    "products": [
+                      {
+                        "itemName": "Moonberries",
+                        "itemCode": "MoonBerr",
+                        "qualityOperation": 0,
+                        "stock": [
+                          {
+                            "uuid": "38422dcc-3f1a-4b70-abe8-6bd1222ca68c",
+                            "sellBy": 15,
+                            "quality": 20
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/product/all": {
+      "post": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get all products",
+        "description": "Get all products in the inventory&nbsp;and calculate values & dates based on days to offset (``dayOffset``) & ``qualityOperation``.\n#### DataView:\n<ul>\n<li>Where applicable, sort args apply to both parent product objects and nested stock items.</li>\n<li><i>Limit</i> applies to the total nested stock items across all product objects.</li>\n<li>If <i>dataView</i> or any of its properties are omitted, defaults are generated programmatically.</li>\n</ul>\n\n\n#### Quality Operations:\n\n<ul> <li><b>0</b>: <i>Quality</i> decrements daily by 1.\n Once the <i>sellByDate</i> has passed, <i>quality</i> degrades twice as fast.\n</li>\n<li><b>1</b>: <i>Quality</i> increments daily by 1 and continues incrementing by 1 after the\n<i>sellByDate</i> has passed.</li>\n <li><b>2</b>: <i>Quality</i> increments daily by 1.\n When 10 or fewer days remain until the <i>sellByDate</i>, <i>quality</i> increments daily by 2.\n After the <i>sellByDate</i> has passed, <i>quality</i> drops to 0.\n</li>\n<li><b>3</b>: <i>Quality</i> never decrements.</li>\n</ul>\n\nAn item's <code>quality</code> may never fall below 0.\n\nAn item's <code>sellBy</code> decrements daily by 1.",
+        "operationId": "getAllProducts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductAllProdsRequest"
+              },
+              "examples": {
+                "All Products Request 1": {
+                  "description": "``dayOffset`` is given",
+                  "value": {
+                    "dataView": {
+                      "dayOffset": 5,
+                      "limit": 100,
+                      "sortBy": "quality",
+                      "sortOrder": "ASC"
+                    }
+                  }
+                },
+                "All Products Request 2": {
+                  "description": "``dayOffset`` is *not* given",
+                  "value": {
+                    "dataView": {
+                      "limit": 100,
+                      "sortBy": "quality",
+                      "sortOrder": "ASC"
+                    }
+                  }
+                },
+                "All Products Request 3": {
+                  "description": "``dataView`` is not given",
+                  "value": {}
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Products found",
+            "content": {
+              "application/json;version=1.0.0": {
+                "examples": {
+                  "All Products Response 1": {
+                    "description": "Retrieves all products and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` values for each inventory item have updated\nin accordance with ``qualityOperation`` values.\n",
+                    "value": {
+                      "data": {
+                        "count": 8,
+                        "products": [
+                          {
+                            "itemName": "Grannysmith Apple Bunch",
+                            "itemCode": "ApplesGran",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "f50f7d0c-5f1b-440e-9209-0de118b73ae3",
+                                "futureDate": "2077-01-30",
+                                "sellByDate": "2077-01-30",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 0,
+                                "quality": 2
+                              },
+                              {
+                                "uuid": "8611e2fe-5e9c-42a4-b8c4-783fab1fddb3",
+                                "futureDate": "2077-01-30",
+                                "sellByDate": "2077-01-31",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 1,
+                                "quality": 2
+                              },
+                              {
+                                "uuid": "34e3e95a-3a88-445c-a0b4-0060c4a38e1d",
+                                "futureDate": "2077-01-30",
+                                "sellByDate": "2077-02-02",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 3,
+                                "quality": 4
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "3lb Ground Beef",
+                            "itemCode": "3lbGrBeef",
+                            "qualityOperation": 2,
+                            "stock": [
+                              {
+                                "uuid": "cc500abc-9e28-4488-82fe-0868e9fd1d8f",
+                                "futureDate": "2077-01-30",
+                                "sellByDate": "2077-02-09",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 10,
+                                "quality": 15
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Corn on the cob",
+                            "itemCode": "CornCob",
+                            "qualityOperation": 1,
+                            "stock": [
+                              {
+                                "uuid": "6233a927-7182-4ff8-8321-61afdc4f4b94",
+                                "futureDate": "2077-01-30",
+                                "sellByDate": "2077-02-04",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 5,
+                                "quality": 17
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Organic Spinach",
+                            "itemCode": "OrgSpinach",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "7bf252ec-7c04-47f3-a89a-e442f1fa094e",
+                                "futureDate": "2077-01-30",
+                                "sellByDate": "2077-02-04",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 5,
+                                "quality": 15
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Moonberries",
+                            "itemCode": "MoonBerr",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "622c772d-35ee-4b60-a3fd-1635cec5d9a6",
+                                "futureDate": "2077-01-30",
+                                "sellByDate": "2077-02-09",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 10,
+                                "quality": 15
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Twinkies",
+                            "itemCode": "Twinkies",
+                            "qualityOperation": 3,
+                            "stock": [
+                              {
+                                "uuid": "0743d028-4c43-402d-91c0-2607a3a98999",
+                                "futureDate": "2077-01-30",
+                                "sellByDate": "2077-01-26",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": -4,
+                                "quality": 50
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "All Products Response 2": {
+                    "description": "Retrieves all products and does *not* off set the current date.\n\n\nNote that there is *no* ``futureDate`` property\nand that ``quality`` & ``sellBy`` values for each inventory item have *not* updated.\n\n\nThe days between ``stockDate`` and ``currentDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "count": 8,
+                        "products": [
+                          {
+                            "itemName": "Grannysmith Apple Bunch",
+                            "itemCode": "ApplesGran",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "f50f7d0c-5f1b-440e-9209-0de118b73ae3",
+                                "sellByDate": "2077-01-30",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 5,
+                                "quality": 7
+                              },
+                              {
+                                "uuid": "8611e2fe-5e9c-42a4-b8c4-783fab1fddb3",
+                                "sellByDate": "2077-01-31",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 6,
+                                "quality": 7
+                              },
+                              {
+                                "uuid": "34e3e95a-3a88-445c-a0b4-0060c4a38e1d",
+                                "sellByDate": "2077-02-02",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 8,
+                                "quality": 9
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "3lb Ground Beef",
+                            "itemCode": "3lbGrBeef",
+                            "qualityOperation": 2,
+                            "stock": [
+                              {
+                                "uuid": "cc500abc-9e28-4488-82fe-0868e9fd1d8f",
+                                "sellByDate": "2077-02-09",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 15,
+                                "quality": 10
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Corn on the cob",
+                            "itemCode": "CornCob",
+                            "qualityOperation": 1,
+                            "stock": [
+                              {
+                                "uuid": "6233a927-7182-4ff8-8321-61afdc4f4b94",
+                                "sellByDate": "2077-02-04",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 10,
+                                "quality": 12
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Organic Spinach",
+                            "itemCode": "OrgSpinach",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "7bf252ec-7c04-47f3-a89a-e442f1fa094e",
+                                "sellByDate": "2077-02-04",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 10,
+                                "quality": 20
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Moonberries",
+                            "itemCode": "MoonBerr",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "622c772d-35ee-4b60-a3fd-1635cec5d9a6",
+                                "sellByDate": "2077-02-09",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 15,
+                                "quality": 20
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Twinkies",
+                            "itemCode": "Twinkies",
+                            "qualityOperation": 3,
+                            "stock": [
+                              {
+                                "uuid": "0743d028-4c43-402d-91c0-2607a3a98999",
+                                "sellByDate": "2077-01-26",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 1,
+                                "quality": 50
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "All Products Response 3": {
+                    "description": "Retrieves all products and uses default ``dataView`` object.\n\n\nNote that there is *no* ``futureDate`` property\nand that ``quality`` & ``sellBy`` values for each inventory item have *not* updated.\n\n\nThe days between ``stockDate`` and ``currentDate`` are used when computing these values.\n",
+                    "value": {
+                      "data": {
+                        "count": 8,
+                        "products": [
+                          {
+                            "itemName": "3lb Ground Beef",
+                            "itemCode": "3lbGrBeef",
+                            "qualityOperation": 2,
+                            "stock": [
+                              {
+                                "uuid": "b683f6ff-11e6-46bc-b15d-5032255814f6",
+                                "sellByDate": "2077-02-09",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 15,
+                                "quality": 10
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Corn on the cob",
+                            "itemCode": "CornCob",
+                            "qualityOperation": 1,
+                            "stock": [
+                              {
+                                "uuid": "38def422-c804-46c3-b799-e7a300264ef6",
+                                "sellByDate": "2077-02-04",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 10,
+                                "quality": 12
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Grannysmith Apple Bunch",
+                            "itemCode": "ApplesGran",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "a0c914b7-7742-41dc-ac7f-d4584091ffdc",
+                                "sellByDate": "2077-01-30",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 5,
+                                "quality": 7
+                              },
+                              {
+                                "uuid": "be652a99-b772-40b8-95d3-78688b0c4eb2",
+                                "sellByDate": "2077-01-31",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 6,
+                                "quality": 7
+                              },
+                              {
+                                "uuid": "518288d0-e8f1-4ab8-8d66-ba647f6fc30e",
+                                "sellByDate": "2077-02-02",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 8,
+                                "quality": 9
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Moonberries",
+                            "itemCode": "MoonBerr",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "837efb82-2337-4552-a277-c615577232ae",
+                                "sellByDate": "2077-02-09",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 15,
+                                "quality": 20
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Organic Spinach",
+                            "itemCode": "OrgSpinach",
+                            "qualityOperation": 0,
+                            "stock": [
+                              {
+                                "uuid": "3efaa7da-a106-4de7-adaf-9211d74dafb6",
+                                "sellByDate": "2077-02-04",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 10,
+                                "quality": 20
+                              }
+                            ]
+                          },
+                          {
+                            "itemName": "Twinkies",
+                            "itemCode": "Twinkies",
+                            "qualityOperation": 3,
+                            "stock": [
+                              {
+                                "uuid": "df4f1e2c-dab9-4953-9bcf-7aa07f296fb4",
+                                "sellByDate": "2077-01-26",
+                                "stockDate": "2077-01-25",
+                                "currentDate": "2077-01-25",
+                                "sellBy": 1,
+                                "quality": 50
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No products found",
+            "content": {
+              "application/json;version=1.0.0": {
+                "example": {
+                  "data": {
+                    "count": 0,
+                    "products": [
+                      {
+                        "itemName": "Organic Spinach",
+                        "itemCode": "OrgSpinach",
+                        "qualityOperation": 0,
+                        "stock": []
+                      },
+                      {
+                        "itemName": "Corn on the cob",
+                        "itemCode": "CornCob",
+                        "qualityOperation": 1,
+                        "stock": []
+                      },
+                      {
+                        "itemName": "Grannysmith Apple Bunch",
+                        "itemCode": "ApplesGran",
+                        "qualityOperation": 0,
+                        "stock": []
+                      },
+                      {
+                        "itemName": "Twinkies",
+                        "itemCode": "Twinkies",
+                        "qualityOperation": 3,
+                        "stock": []
+                      },
+                      {
+                        "itemName": "3lb Ground Beef",
+                        "itemCode": "3lbGrBeef",
+                        "qualityOperation": 2,
+                        "stock": []
+                      },
+                      {
+                        "itemName": "Moonberries",
+                        "itemCode": "MoonBerr",
+                        "qualityOperation": 0,
+                        "stock": []
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/shutdown": {
+      "post": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'shutdown'",
+        "operationId": "shutdown",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/redis/keys/{key}": {
+      "get": {
+        "tags": [
+          "Cache"
+        ],
+        "summary": "Get Redis key-value pair by key",
+        "operationId": "getRedisKeyValuePairByKey",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Key to lookup",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key-value pair fetched successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "products::ProductInventoryServiceImpl,getAllProducts,100,sellBy,DESC,0": "<test value>"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Key not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Key not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/redis/keys/all": {
+      "get": {
+        "tags": [
+          "Cache"
+        ],
+        "summary": "Get all Redis key-value pairs",
+        "operationId": "getAllRedisKeys",
+        "responses": {
+          "200": {
+            "description": "All key-value pairs fetched successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "keys": [
+                    "products::ProductInventoryServiceImpl,getAllProducts,100,sellBy,DESC,0",
+                    "products::ProductInventoryServiceImpl,getProductByItemName,Moonberries,100,sellBy,DESC,0"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Keys not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "keys": []
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/redis/evict": {
+      "get": {
+        "tags": [
+          "Cache"
+        ],
+        "summary": "Refresh the cache",
+        "operationId": "evictCache",
+        "responses": {
+          "200": {
+            "description": "Cache refreshed successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Cache refreshed successfully"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator root web endpoint",
+        "operationId": "links",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/Link"
+                    }
+                  }
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/Link"
+                    }
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/Link"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/scheduledtasks": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'scheduledtasks'",
+        "operationId": "scheduledtasks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/metrics": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'metrics'",
+        "operationId": "metrics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/metrics/{requiredMetricName}": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'metrics-requiredMetricName'",
+        "operationId": "metrics-requiredMetricName",
+        "parameters": [
+          {
+            "name": "requiredMetricName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/info": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'info'",
+        "operationId": "info",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/health": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'health'",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/health/**": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'health-path'",
+        "operationId": "health-path",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/caches": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'caches'",
+        "operationId": "caches",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'caches'",
+        "operationId": "caches_2",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/caches/{cache}": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'caches-cache'",
+        "operationId": "caches-cache",
+        "parameters": [
+          {
+            "name": "cache",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'caches-cache'",
+        "operationId": "caches-cache_2",
+        "parameters": [
+          {
+            "name": "cache",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/zmart/product/delete": {
+      "delete": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Delete product(s)",
+        "description": "Delete products in the inventory",
+        "operationId": "deleteProductsById",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductDeletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Listed product(s) deleted successfully",
+            "content": {
+              "application/json;version=1.0.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDeletionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No products found with any provided ``uuids``",
+            "content": {
+              "application/json;version=1.0.0": {
+                "example": {
+                  "data": {
+                    "deleted": []
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DataViewDto": {
+        "required": [
+          "limit",
+          "sortBy"
+        ],
+        "type": "object",
+        "properties": {
+          "dayOffset": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int32",
+            "default": 100
+          },
+          "sortBy": {
+            "pattern": "sellBy|itemName|quality|stockDate",
+            "type": "string",
+            "default": "itemName",
+            "enum": [
+              "sellBy",
+              "itemName",
+              "quality",
+              "stockDate"
+            ]
+          },
+          "sortOrder": {
+            "type": "string",
+            "default": "ASC",
+            "enum": [
+              "ASC",
+              "DESC"
+            ]
+          }
+        }
+      },
+      "ProductsByQualityRequest": {
+        "type": "object",
+        "properties": {
+          "quality": {
+            "type": "string",
+            "default": "20"
+          },
+          "dataView": {
+            "$ref": "#/components/schemas/DataViewDto"
+          }
+        }
+      },
+      "ProductByItemNameRequest": {
+        "type": "object",
+        "properties": {
+          "itemName": {
+            "type": "string",
+            "default": "Moonberries"
+          },
+          "dataView": {
+            "$ref": "#/components/schemas/DataViewDto"
+          }
+        }
+      },
+      "ProductByItemCodeRequest": {
+        "type": "object",
+        "properties": {
+          "itemCode": {
+            "type": "string",
+            "default": "MoonBerr"
+          },
+          "dataView": {
+            "$ref": "#/components/schemas/DataViewDto"
+          }
+        }
+      },
+      "ProductByIdRequest": {
+        "required": [
+          "uuid"
+        ],
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayOffset": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          }
+        }
+      },
+      "InventoryDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true,
+            "default": "b252b455-f9b3-4fa5-be18-0b25e8d8b074"
+          },
+          "futureDate": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "sellByDate": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "stockDate": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "currentDate": {
+            "type": "string",
+            "format": "date",
+            "readOnly": true
+          },
+          "sellBy": {
+            "maxLength": 1000,
+            "type": "integer",
+            "format": "int32",
+            "default": 15
+          },
+          "quality": {
+            "maxLength": 50,
+            "type": "integer",
+            "format": "int32",
+            "default": 20
+          }
+        }
+      },
+      "ProductCreationDto": {
+        "required": [
+          "stock"
+        ],
+        "type": "object",
+        "properties": {
+          "itemName": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string",
+            "default": "Moonberries"
+          },
+          "itemCode": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string",
+            "default": "MoonBerr"
+          },
+          "quality": {
+            "type": "integer",
+            "format": "int32",
+            "default": 20
+          },
+          "qualityOperation": {
+            "maxLength": 3,
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "stock": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryDto"
+            }
+          }
+        }
+      },
+      "ProductCreationRequest": {
+        "required": [
+          "products"
+        ],
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductCreationDto"
+            }
+          }
+        }
+      },
+      "ProductAllProdsRequest": {
+        "type": "object",
+        "properties": {
+          "dataView": {
+            "$ref": "#/components/schemas/DataViewDto"
+          }
+        }
+      },
+      "Link": {
+        "type": "object",
+        "properties": {
+          "href": {
+            "type": "string"
+          },
+          "hreflang": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "deprecation": {
+            "type": "string"
+          },
+          "profile": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "templated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProductDeletionRequest": {
+        "type": "object",
+        "properties": {
+          "uuids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "ProductDeletionResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "required": [
+              "count"
+            ],
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer",
+                "format": "int32",
+                "example": 1
+              },
+              "deleted": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
