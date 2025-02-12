@@ -16,8 +16,8 @@ import java.lang.annotation.Target;
                 "{#root.targetClass.canonicalName.substring("
                         + "#root.targetClass.canonicalName.lastIndexOf('.') + 1), "
                         + "#root.methodName, "
-                        + "#request.uuid, "
-                        + "#request.dayOffset}",
+                        + "#uuid, "
+                        + "#dayOffset}",
         sync = true)
 public @interface CacheableId {
 }

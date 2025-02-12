@@ -16,11 +16,11 @@ import java.lang.annotation.Target;
                 "{#root.targetClass.canonicalName.substring("
                         + "#root.targetClass.canonicalName.lastIndexOf('.') + 1), "
                         + "#root.methodName, "
-                        + "#request.itemCode, "
-                        + "#request.dataViewDto.limit, "
-                        + "#request.dataViewDto.sortBy, "
-                        + "#request.dataViewDto.sortOrder, "
-                        + "#request.dataViewDto.dayOffset}",
+                        + "#itemCode, "
+                        + "#request.limit, "
+                        + "#request.sortBy, "
+                        + "#request.sortOrder, "
+                        + "#request.dayOffset}",
         sync = true)
 public @interface CacheableItemCode {
 }

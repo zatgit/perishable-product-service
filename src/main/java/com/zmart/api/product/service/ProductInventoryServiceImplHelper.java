@@ -2,7 +2,7 @@ package com.zmart.api.product.service;
 
 import com.zmart.api.product.dto.InventoryDto;
 import com.zmart.api.product.dto.ProductDto;
-import com.zmart.api.product.dto.request.SortableProductRequest;
+import com.zmart.api.product.dto.request.SortableQuery;
 import com.zmart.api.product.entity.Inventory;
 import com.zmart.api.product.entity.Product;
 import jakarta.annotation.Nullable;
@@ -50,11 +50,11 @@ public class ProductInventoryServiceImplHelper {
     }
 
     @NotNull
-    Sort getProductSort(@NotNull final SortableProductRequest request) {
+    Sort getProductSort(@NotNull final SortableQuery query) {
         return Sort.by(
                 Sort.Direction.valueOf(
-                        request.dataViewDto().sortOrder().toUpperCase(Locale.ROOT)),
-                String.format("%s.%s", INVENTORY_LIST, request.dataViewDto().sortBy()));
+                        query.sortOrder().toUpperCase(Locale.ROOT)),
+                String.format("%s.%s", INVENTORY_LIST, query.sortBy()));
     }
 
     BiFunction<List<InventoryDto>, Sort, List<InventoryDto>> sortedInventories =

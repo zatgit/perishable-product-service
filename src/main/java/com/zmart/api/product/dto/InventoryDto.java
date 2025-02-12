@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.zmart.api.product.dto.request.ProductCreationRequest;
+import com.zmart.api.product.dto.request.ProductCreateRequest;
 import com.zmart.api.product.util.ProductConstants;
 import com.zmart.api.product.validation.ValidCreateProductQualities;
 import com.zmart.api.product.validation.ValidPositiveNumeral;
@@ -22,7 +22,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
  * {@link #quality} validated by:
  * <br>{@link ValidCreateProductQualities}
  * <br>which annotates:
- * <br>{@link ProductCreationRequest}
+ * <br>{@link ProductCreateRequest}
  * */
 @JsonPropertyOrder({"uuid", "futureDate", "sellByDate", "stockDate", "currentDate", "sellBy", "quality"})
 @JsonInclude(NON_NULL)

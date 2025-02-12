@@ -9,19 +9,15 @@ import com.zmart.api.product.cache.CacheableItemName;
 import com.zmart.api.product.cache.CacheableQuality;
 import com.zmart.api.product.dto.InventoryDto;
 import com.zmart.api.product.dto.ProductDto;
-import com.zmart.api.product.dto.request.ProductAllProdsRequest;
-import com.zmart.api.product.dto.request.ProductByIdRequest;
-import com.zmart.api.product.dto.request.ProductByItemCodeRequest;
-import com.zmart.api.product.dto.request.ProductByItemNameRequest;
-import com.zmart.api.product.dto.request.ProductCreationRequest;
-import com.zmart.api.product.dto.request.ProductDeletionRequest;
-import com.zmart.api.product.dto.request.ProductsByQualityRequest;
+import com.zmart.api.product.dto.request.ProductCreateRequest;
+import com.zmart.api.product.dto.request.ProductDeleteRequest;
+import com.zmart.api.product.dto.request.ProductQueryParamsDto;
 import com.zmart.api.product.dto.response.ProductAllProdsResponse;
 import com.zmart.api.product.dto.response.ProductByIdResponse;
 import com.zmart.api.product.dto.response.ProductByItemCodeResponse;
 import com.zmart.api.product.dto.response.ProductByItemNameResponse;
-import com.zmart.api.product.dto.response.ProductCreationResponse;
-import com.zmart.api.product.dto.response.ProductDeletionResponse;
+import com.zmart.api.product.dto.response.ProductCreateResponse;
+import com.zmart.api.product.dto.response.ProductDeleteResponse;
 import com.zmart.api.product.dto.response.ProductsByQualityResponse;
 import com.zmart.api.product.entity.Inventory;
 import com.zmart.api.product.entity.Product;
@@ -33,17 +29,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
 import static com.zmart.api.product.dto.ProductMapper.PRODUCT_MAPPER;
+import static com.zmart.api.product.exception.ExceptionUtils.getProductNotFoundMessage;
 import static com.zmart.api.product.util.ProductConstants.ITEM_CODE;
 import static com.zmart.api.product.util.ProductConstants.ITEM_NAME;
 import static com.zmart.api.product.util.ProductConstants.PRODUCTS;
@@ -82,14 +84,14 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
     @Transactional
     @CacheableAllProducts
     public ProductAllProdsResponse getAllProducts(
-            @NotNull final ProductAllProdsRequest request) {
+            @NotNull final ProductQueryParamsDto request) {
         final Sort sort = helper.getProductSort(request);
         final List<Product> result = productRepository.findAll(null,
-                QUERY_OFFSET, request.dataViewDto().limit(), sort);
+                QUERY_OFFSET, request.limit(), sort);
         return ProductAllProdsResponse.builder()
                 .productDtoList(getSortableDailyInventoryTracking(
                         PRODUCT_MAPPER.productEntityListToProductDtoList(result),
-                        request.dataViewDto().dayOffset(), sort))
+                        request.dayOffset(), sort))
                 .count(getInventoryCount(result))
                 .build();
     }
@@ -100,13 +102,15 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
     @Transactional
     @CacheableId
     public ProductByIdResponse getProductById(
-            @NotNull final ProductByIdRequest request) {
-        final Product result = productRepository.findBy(
-                helper.getProductSpecification(UUID, request.uuid()));
+            @NotNull UUID uuid,
+            @NotNull Integer dayOffset) {
+        final Product result = Optional.ofNullable(productRepository.findBy(
+                helper.getProductSpecification(UUID, uuid)))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        getProductNotFoundMessage(UUID, String.valueOf(uuid))));
         return ProductByIdResponse.builder()
-                .productDto(result != null ? getDailyInventoryTracking(
-                        PRODUCT_MAPPER.productEntityToProductDto(result), request.dayOffset())
-                        : ProductDto.builder().build())
+                .productDto(getDailyInventoryTracking(
+                        PRODUCT_MAPPER.productEntityToProductDto(result), dayOffset))
                 .build();
     }
 
@@ -116,15 +120,17 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
     @Transactional
     @CacheableItemName
     public ProductByItemNameResponse getProductByItemName(
-            @NotNull final ProductByItemNameRequest request) {
-        final Product result = productRepository.findBy(
-                helper.getProductSpecification(ITEM_NAME, request.itemName()),
-                QUERY_OFFSET, request.dataViewDto().limit());
+            @NotNull final String itemName,
+            @NotNull final ProductQueryParamsDto request) {
+        final Product result = Optional.ofNullable(productRepository.findBy(
+                helper.getProductSpecification(ITEM_NAME, itemName),
+                        QUERY_OFFSET, request.limit()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        getProductNotFoundMessage(ITEM_NAME, itemName)));
         return ProductByItemNameResponse.builder()
-                .productDto(result != null ? getSortableDailyInventoryTracking(
+                .productDto(getSortableDailyInventoryTracking(
                         PRODUCT_MAPPER.productEntityToProductDto(result),
-                        request.dataViewDto().dayOffset(), helper.getProductSort(request))
-                        : ProductDto.builder().build())
+                        request.dayOffset(), helper.getProductSort(request)))
                 .build();
     }
 
@@ -134,15 +140,17 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
     @Transactional
     @CacheableItemCode
     public ProductByItemCodeResponse getProductByItemCode(
-            @NotNull final ProductByItemCodeRequest request) {
-        final Product result = productRepository.findBy(
-                helper.getProductSpecification(ITEM_CODE, request.itemCode()),
-                QUERY_OFFSET, request.dataViewDto().limit());
+            @NotNull final String itemCode,
+            @NotNull final ProductQueryParamsDto request) {
+        final Product result = Optional.ofNullable(productRepository.findBy(
+                helper.getProductSpecification(ITEM_CODE, itemCode),
+                        QUERY_OFFSET, request.limit()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        getProductNotFoundMessage(ITEM_CODE, itemCode)));
         return ProductByItemCodeResponse.builder()
-                .productDto(result != null ? getSortableDailyInventoryTracking(
+                .productDto(getSortableDailyInventoryTracking(
                         PRODUCT_MAPPER.productEntityToProductDto(result),
-                        request.dataViewDto().dayOffset(), helper.getProductSort(request))
-                        : ProductDto.builder().build())
+                        request.dayOffset(), helper.getProductSort(request)))
                 .build();
     }
 
@@ -152,15 +160,16 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
     @Transactional
     @CacheableQuality
     public ProductsByQualityResponse getProductsByQuality(
-            @NotNull final ProductsByQualityRequest request) {
+            @NotNull final Integer quality,
+            @NotNull final ProductQueryParamsDto request) {
         final Sort sort = helper.getProductSort(request);
         final List<Product> result = productRepository.findAll(
-                helper.getProductSpecification(QUALITY, request.quality()),
-                QUERY_OFFSET, request.dataViewDto().limit(), sort);
+                helper.getProductSpecification(QUALITY, quality),
+                QUERY_OFFSET, request.limit(), sort);
         return ProductsByQualityResponse.builder()
                 .productDtoList(getSortableDailyInventoryTracking(
                         PRODUCT_MAPPER.productEntityListToProductDtoList(result),
-                        request.dataViewDto().dayOffset(), sort))
+                        request.dayOffset(), sort))
                 .count(getInventoryCount(result))
                 .build();
     }
@@ -170,8 +179,8 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
      */
     @Transactional
     @CacheEvictCreate
-    public ProductCreationResponse createProducts(
-            @NotNull final ProductCreationRequest request) {
+    public ProductCreateResponse createProducts(
+            @NotNull final ProductCreateRequest request) {
         final List<Product> productList = PRODUCT_MAPPER.productCreationDtoListToProductList(
                 request.productCreationDtoList()).stream()
                     .map(p ->
@@ -185,7 +194,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
                                             .toList()))
                     .toList();
         final List<Product> result = productRepository.saveAll(productList);
-        return ProductCreationResponse.builder()
+        return ProductCreateResponse.builder()
                 .productDtoList(PRODUCT_MAPPER.productEntityListToProductDtoList(result))
                 .count(getInventoryCount(result))
                 .build();
@@ -196,12 +205,18 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
      */
     @Transactional
     @CacheEvictDelete
-    public ProductDeletionResponse deleteProductsById(
-            @NotNull final ProductDeletionRequest productDeletionRequest) {
-        final List<Inventory> result = inventoryRepository.deleteAllByUuidIn(
-                productDeletionRequest.uuidList());
-        return ProductDeletionResponse.builder()
-                .deletedProducts(result.stream().map(Inventory::getUuid).toList())
+    public ProductDeleteResponse deleteProductsById(
+            @NotNull final ProductDeleteRequest productDeleteRequest) {
+        final List<Inventory> deletedProducts = inventoryRepository.deleteAllByUuidIn(
+                productDeleteRequest.uuidList());
+        List<UUID> deletedUuids = deletedProducts.stream()
+                .map(Inventory::getUuid)
+                .toList();
+        List<UUID> notFoundUuids = new ArrayList<>(productDeleteRequest.uuidList());
+        notFoundUuids.removeAll(deletedUuids);
+        return ProductDeleteResponse.builder()
+                .deletedProductUuids(deletedUuids)
+                .notFoundUuids(notFoundUuids)
                 .build();
     }
 

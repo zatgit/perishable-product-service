@@ -16,10 +16,10 @@ import java.lang.annotation.Target;
                 "{#root.targetClass.canonicalName.substring("
                         + "#root.targetClass.canonicalName.lastIndexOf('.') + 1), "
                         + "#root.methodName ,"
-                        + "#request.dataViewDto.limit, "
-                        + "#request.dataViewDto.sortBy, "
-                        + "#request.dataViewDto.sortOrder, "
-                        + "#request.dataViewDto.dayOffset}",
+                        + "#request.limit, "
+                        + "#request.sortBy, "
+                        + "#request.sortOrder, "
+                        + "#request.dayOffset}",
         sync = true)
 public @interface CacheableAllProducts {
 }

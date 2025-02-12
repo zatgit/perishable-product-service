@@ -21,6 +21,7 @@ import static com.zmart.api.product.util.ProductUtility.replaceBrackets;
 @SuppressWarnings("java:S2259") //checked for null
 public final class ExceptionUtils {
 
+    public static final String PRODUCT_NOT_FOUND = "Product not found";
     private static final String EX_FQN_FILTER_INCLUDE = "com.zmart.food";
     private static final String EX_FQN_FILTER_EXCLUDE = "exception";
     private static final String FORMAT_WHITESPACE_TWO_STRINGS = "%s %s";
@@ -176,5 +177,9 @@ public final class ExceptionUtils {
             return getConstraintViolationMessage(conEX);
         }
         return tranEx.getCause().getMessage();
+    }
+
+    public static String getProductNotFoundMessage(String fieldName, String fieldValue) {
+        return String.format("Product with %s '%s' not found", fieldName, fieldValue);
     }
 }

@@ -1,50 +1,94 @@
 package com.zmart.api.product.controller;
 
-import com.zmart.api.product.dto.request.ProductAllProdsRequest;
-import com.zmart.api.product.dto.request.ProductByIdRequest;
-import com.zmart.api.product.dto.request.ProductByItemCodeRequest;
-import com.zmart.api.product.dto.request.ProductByItemNameRequest;
-import com.zmart.api.product.dto.request.ProductCreationRequest;
-import com.zmart.api.product.dto.request.ProductDeletionRequest;
-import com.zmart.api.product.dto.request.ProductsByQualityRequest;
+import com.zmart.api.product.dto.request.ProductCreateRequest;
+import com.zmart.api.product.dto.request.ProductDeleteRequest;
+import com.zmart.api.product.dto.request.ProductQueryParamsDto;
 import com.zmart.api.product.dto.response.ProductAllProdsResponse;
 import com.zmart.api.product.dto.response.ProductByIdResponse;
 import com.zmart.api.product.dto.response.ProductByItemCodeResponse;
 import com.zmart.api.product.dto.response.ProductByItemNameResponse;
-import com.zmart.api.product.dto.response.ProductCreationResponse;
-import com.zmart.api.product.dto.response.ProductDeletionResponse;
+import com.zmart.api.product.dto.response.ProductCreateResponse;
+import com.zmart.api.product.dto.response.ProductDeleteResponse;
 import com.zmart.api.product.dto.response.ProductsByQualityResponse;
 import com.zmart.api.product.service.ProductInventoryService;
+import com.zmart.api.product.validation.ValidAlpha;
+import com.zmart.api.product.validation.ValidAlphaWithSpace;
+import com.zmart.api.product.validation.ValidPositiveNumeral;
+import com.zmart.api.product.validation.ValidQuality;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.zmart.api.product.controller.swagger.SwaggerProdDescriptionConstants.*;
-import static com.zmart.api.product.controller.swagger.SwaggerProdExampleJsonConstants.*;
-import static com.zmart.api.product.util.ProductConstants.API_BASE_RESOURCE_PATH;
-import static com.zmart.api.product.util.ProductConstants.API_VERSION;
-import static com.zmart.api.product.util.ProductUtility.getSingleResourceResponseStatus;
+import java.util.UUID;
 
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.BAD_REQUEST_INVALID_PROPS_CREATE_DESCRIPTION;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.BAD_REQUEST_MALFORMED_UUID_DELETE_DESCRIPTION;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.BAD_REQUEST_MALFORMED_UUID_GET_BY_ID_DESCRIPTION;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.BAD_REQUEST_METHOD_ARG_TYPE_MISMATCH_DESCRIPTION;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.BAD_REQUEST_METHOD_NOT_ALLOWED_DESCRIPTION;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.BAD_REQUEST_MISSING_PARAM_DESCRIPTION;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.BAD_REQUEST_VALIDATION_DESCRIPTION;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.FUTURE_DATE_5_GIVEN_QUALITY_OP_0_5_GET_ALL_DESC;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.FUTURE_DATE_5_GIVEN_QUALITY_OP_0_DESC;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.FUTURE_DATE_NOT_GIVEN_DESC;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.FUTURE_DATE_NOT_GIVEN_GET_ALL_DESC;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.SORT_AND_OFFSET_AND_QUERY_DESC;
+import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.SWAGGER_QUALITY_OP_RENDER;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_EXAMPLE_METHOD_ARG_TYPE_MISMATCH;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_EXAMPLE_METHOD_NOT_ALLOWED;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_EXAMPLE_MISSING_PARAM;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_EXAMPLE_VALIDATION_LIMIT;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_EXAMPLE_VALIDATION_SORT_BY;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_EXAMPLE_VALIDATION_SORT_ORDER;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_INVALID_PROPS_CREATE_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_MALFORMED_UUID_DELETE_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.BAD_REQUEST_MALFORMED_UUID_GET_BY_ID_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.CREATE_PROD_REQ_EXAMPLE_1;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.CREATE_PROD_REQ_EXAMPLE_2;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.CREATE_PROD_RESP_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.DELETE_PROD_REQ_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.DELETE_PROD_RESP_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_ALL_RESP_EXAMPLE_1;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_ALL_RESP_EXAMPLE_2;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_ALL_RESP_EXAMPLE_3;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_CODE_AND_NAME_RESP_EXAMPLE_1;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_CODE_AND_NAME_RESP_EXAMPLE_2;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_EMPTY_ARRAY_RESP_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_ID_RESP_EXAMPLE_1;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_ID_RESP_EXAMPLE_2;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_NOT_FOUND_ITEM_CODE_RESP_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_NOT_FOUND_ITEM_NAME_RESP_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_NOT_FOUND_UUID_RESP_EXAMPLE;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_QUALITY_RESP_EXAMPLE_1;
+import static com.zmart.api.product.controller.swagger.ApiResponseExamples.PROD_QUALITY_RESP_EXAMPLE_2;
+import static com.zmart.api.product.util.ProductConstants.API_BASE_RESOURCE_PATH;
+import static com.zmart.api.product.util.ProductConstants.UUID_DUMMY;
+
+@Validated
 @CrossOrigin
 @RestController
 @RequestMapping(
-        path = API_BASE_RESOURCE_PATH + "/product",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE + "; version=" + API_VERSION)
+        path = API_BASE_RESOURCE_PATH + "product",
+        produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Product", description = "Product management APIs")
 public class ProductRestController {
 
@@ -55,7 +99,7 @@ public class ProductRestController {
         this.productInventoryService = productInventoryService;
     }
 
-    @PostMapping("all")
+    @GetMapping("all")
     @Operation(summary = "Get all products", description = "Get all products in the inventory"
             + SORT_AND_OFFSET_AND_QUERY_DESC + SWAGGER_QUALITY_OP_RENDER)
     @ApiResponse(responseCode = "200", description = "Products found",
@@ -71,81 +115,105 @@ public class ProductRestController {
                     @ExampleObject(name = "All Products Response 3", value = PROD_ALL_RESP_EXAMPLE_3,
                             description = """
                             Retrieves all products and uses default ``dataView`` object.
-                            """ + FUTURE_DATE_NOT_GIVEN_GET_ALL_DESC)})})
-    @ApiResponse(responseCode = "404", description = "No products found",
-            content = {@Content(examples = @ExampleObject(PROD_ALL_RESP_NOT_FOUND))})
+                            """ + FUTURE_DATE_NOT_GIVEN_GET_ALL_DESC),
+                    @ExampleObject(name = "No products found", value = PROD_EMPTY_ARRAY_RESP_EXAMPLE)})})
+    @ApiResponse(responseCode = "400", description = "Bad Request - A required parameter is missing or validation failed",
+            content = {@Content(examples = {
+                    @ExampleObject(name = "Missing Required Parameter", value = BAD_REQUEST_EXAMPLE_MISSING_PARAM,
+                            description = BAD_REQUEST_MISSING_PARAM_DESCRIPTION),
+                    @ExampleObject(name = "Method Not Allowed", value = BAD_REQUEST_EXAMPLE_METHOD_NOT_ALLOWED,
+                            description = BAD_REQUEST_METHOD_NOT_ALLOWED_DESCRIPTION),
+                    @ExampleObject(name = "Type Mismatch", value = BAD_REQUEST_EXAMPLE_METHOD_ARG_TYPE_MISMATCH,
+                            description = BAD_REQUEST_METHOD_ARG_TYPE_MISMATCH_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortBy", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_BY,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortOrder", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_ORDER,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - limit", value = BAD_REQUEST_EXAMPLE_VALIDATION_LIMIT,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION)})})
     public ResponseEntity<ProductAllProdsResponse> getAllProducts(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = {@Content(examples = {
-                            @ExampleObject(name = "All Products Request 1", value = PROD_ALL_REQ_EXAMPLE_1,
-                                    description = "``dayOffset`` is given"),
-                            @ExampleObject(name = "All Products Request 2", value = PROD_ALL_REQ_EXAMPLE_2,
-                                    description = "``dayOffset`` is *not* given"),
-                            @ExampleObject(name = "All Products Request 3", value = "{}",
-                                    description = "``dataView`` is not given")})})
-            @RequestBody @Valid final ProductAllProdsRequest request) {
-        final ProductAllProdsResponse response = productInventoryService.getAllProducts(request);
-        return new ResponseEntity<>(response,
-                response.productDtoList().stream().allMatch(p -> p.inventoryDtoList().isEmpty())
-                        ? HttpStatus.NOT_FOUND : HttpStatus.OK);
+            @Valid @ParameterObject ProductQueryParamsDto request) {
+        ProductAllProdsResponse response = productInventoryService.getAllProducts(request);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("id")
+    @GetMapping("id")
     @Operation(summary = "Get product by id", description = "Get product matching given ``uuid``"
             + "&nbsp;and calculate values & dates based on days to offset (``dayOffset``) & ``qualityOperation``.")
     @ApiResponse(responseCode = "200", description = "Product with matching ``uuid`` found",
             content = {@Content(examples = {
                     @ExampleObject(name = "Id Response 1", value = PROD_ID_RESP_EXAMPLE_1,
                             description = """
-                            Retrieves product with the given ``uuid`` and off sets the current date by 5 days.
+                            Retrieves product with the given ``uuid`` and offsets the current date by 5 days.
                             """ + FUTURE_DATE_5_GIVEN_QUALITY_OP_0_DESC),
                     @ExampleObject(name = "Id Response 2", value = PROD_ID_RESP_EXAMPLE_2,
                             description = """
-                            Retrieves product with the given ``uuid`` and does *not* off set the current date.
+                            Retrieves product with the given ``uuid`` and does *not* offset the current date.
                             """ + FUTURE_DATE_NOT_GIVEN_DESC)})})
+    @ApiResponse(responseCode = "400", description = "Bad Request - A required parameter is missing or validation failed",
+            content = {@Content(examples = {
+                    @ExampleObject(name = "Malformed UUID", value = BAD_REQUEST_MALFORMED_UUID_GET_BY_ID_EXAMPLE,
+                            description = BAD_REQUEST_MALFORMED_UUID_GET_BY_ID_DESCRIPTION),
+                    @ExampleObject(name = "Missing Required Parameter", value = BAD_REQUEST_EXAMPLE_MISSING_PARAM,
+                            description = BAD_REQUEST_MISSING_PARAM_DESCRIPTION),
+                    @ExampleObject(name = "Method Not Allowed", value = BAD_REQUEST_EXAMPLE_METHOD_NOT_ALLOWED,
+                            description = BAD_REQUEST_METHOD_NOT_ALLOWED_DESCRIPTION),
+                    @ExampleObject(name = "Type Mismatch", value = BAD_REQUEST_EXAMPLE_METHOD_ARG_TYPE_MISMATCH,
+                            description = BAD_REQUEST_METHOD_ARG_TYPE_MISMATCH_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortBy", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_BY,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortOrder", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_ORDER,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - limit", value = BAD_REQUEST_EXAMPLE_VALIDATION_LIMIT,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION)})})
     @ApiResponse(responseCode = "404", description = "No product found with matching ``uuid``",
-            content = {@Content(examples = @ExampleObject(PROD_EMPTY_OBJ_RESP_NOT_FOUND))})
+            content = {@Content(examples = @ExampleObject(PROD_NOT_FOUND_UUID_RESP_EXAMPLE))})
     public ResponseEntity<ProductByIdResponse> getProductById(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = {@Content(examples = {
-                            @ExampleObject(name = "Id Request 1", value = PROD_ID_REQ_EXAMPLE_1,
-                                    description = "``dayOffset`` is given"),
-                            @ExampleObject(name = "Id Request 2", value = PROD_ID_REQ_EXAMPLE_2,
-                                    description = "``dayOffset`` is *not* given")})})
-            @RequestBody @Valid final ProductByIdRequest request) {
-        final ProductByIdResponse response = productInventoryService.getProductById(request);
-        return new ResponseEntity<>(response, getSingleResourceResponseStatus(response.productDto()));
+            @NotNull @RequestParam
+            @Parameter(description = "The UUID of the item", example = UUID_DUMMY) final UUID uuid,
+            @ValidPositiveNumeral @RequestParam(defaultValue = "0") final Integer dayOffset) {
+        final ProductByIdResponse response = productInventoryService.getProductById(uuid, dayOffset);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("item-name")
+    @GetMapping("item-name")
     @Operation(summary = "Get product by itemName", description = "Get product matching given ``itemName``"
             + SORT_AND_OFFSET_AND_QUERY_DESC + SWAGGER_QUALITY_OP_RENDER)
     @ApiResponse(responseCode = "200", description = "Product with matching ``itemName`` found",
             content = {@Content(examples = {
                     @ExampleObject(name = "ItemName Response 1", value = PROD_CODE_AND_NAME_RESP_EXAMPLE_1,
                             description = """
-                            Retrieves product with the given ``itemName`` and off sets the current date by 5 days.
+                            Retrieves product with the given ``itemName`` and offsets the current date by 5 days.
                             """ + FUTURE_DATE_5_GIVEN_QUALITY_OP_0_DESC),
                     @ExampleObject(name = "ItemName Response 2", value = PROD_CODE_AND_NAME_RESP_EXAMPLE_2,
                             description = """
-                            Retrieves product with the given ``itemName`` and does *not* off set the current date.
+                            Retrieves product with the given ``itemName`` and does *not* offset the current date.
                             """ + FUTURE_DATE_NOT_GIVEN_DESC)})})
+    @ApiResponse(responseCode = "400", description = "Bad Request - A required parameter is missing or validation failed",
+            content = {@Content(examples = {
+                    @ExampleObject(name = "Missing Required Parameter", value = BAD_REQUEST_EXAMPLE_MISSING_PARAM,
+                            description = BAD_REQUEST_MISSING_PARAM_DESCRIPTION),
+                    @ExampleObject(name = "Method Not Allowed", value = BAD_REQUEST_EXAMPLE_METHOD_NOT_ALLOWED,
+                            description = BAD_REQUEST_METHOD_NOT_ALLOWED_DESCRIPTION),
+                    @ExampleObject(name = "Type Mismatch", value = BAD_REQUEST_EXAMPLE_METHOD_ARG_TYPE_MISMATCH,
+                            description = BAD_REQUEST_METHOD_ARG_TYPE_MISMATCH_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortBy", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_BY,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortOrder", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_ORDER,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - limit", value = BAD_REQUEST_EXAMPLE_VALIDATION_LIMIT,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION)})})
     @ApiResponse(responseCode = "404", description = "No product found with matching ``itemName``",
-            content = {@Content(examples = @ExampleObject(PROD_EMPTY_OBJ_RESP_NOT_FOUND))})
+            content = {@Content(examples = @ExampleObject(PROD_NOT_FOUND_ITEM_NAME_RESP_EXAMPLE))})
     public ResponseEntity<ProductByItemNameResponse> getProductByItemName(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = {@Content(examples = {
-                            @ExampleObject(name = "ItemName Request 1", value = PROD_ITEM_NAME_REQ_EXAMPLE_1,
-                                    description = "``dayOffset`` is given"),
-                            @ExampleObject(name = "ItemName Request 2", value = PROD_ITEM_NAME_REQ_EXAMPLE_2,
-                                    description = "``dayOffset`` is *not* given")})})
-            @RequestBody @Valid final ProductByItemNameRequest request) {
-        final ProductByItemNameResponse response =
-                productInventoryService.getProductByItemName(request);
-        return new ResponseEntity<>(response, getSingleResourceResponseStatus(response.productDto()));
+            @ValidAlphaWithSpace @RequestParam
+            @Parameter(description = "The name of the item", example = "Moonberries") final String itemName,
+            @Valid @ParameterObject final ProductQueryParamsDto request) {
+        final ProductByItemNameResponse response = productInventoryService.getProductByItemName(itemName, request);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("item-code")
+    @GetMapping("item-code")
     @Operation(summary = "Get product by itemCode", description = "Get product matching given ``itemCode``"
             + SORT_AND_OFFSET_AND_QUERY_DESC + SWAGGER_QUALITY_OP_RENDER)
     @ApiResponse(responseCode = "200", description = "Product with matching itemCode found",
@@ -158,22 +226,31 @@ public class ProductRestController {
                             description = """
                             Retrieves product with the given ``itemCode`` and does *not* off set the current date.
                             """ + FUTURE_DATE_NOT_GIVEN_DESC)})})
+    @ApiResponse(responseCode = "400", description = "Bad Request - A required parameter is missing or validation failed",
+            content = {@Content(examples = {
+                    @ExampleObject(name = "Missing Required Parameter", value = BAD_REQUEST_EXAMPLE_MISSING_PARAM,
+                            description = BAD_REQUEST_MISSING_PARAM_DESCRIPTION),
+                    @ExampleObject(name = "Method Not Allowed", value = BAD_REQUEST_EXAMPLE_METHOD_NOT_ALLOWED,
+                            description = BAD_REQUEST_METHOD_NOT_ALLOWED_DESCRIPTION),
+                    @ExampleObject(name = "Type Mismatch", value = BAD_REQUEST_EXAMPLE_METHOD_ARG_TYPE_MISMATCH,
+                            description = BAD_REQUEST_METHOD_ARG_TYPE_MISMATCH_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortBy", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_BY,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortOrder", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_ORDER,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - limit", value = BAD_REQUEST_EXAMPLE_VALIDATION_LIMIT,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION)})})
     @ApiResponse(responseCode = "404", description = "No product found with matching ``itemCode``",
-            content = {@Content(examples = @ExampleObject(PROD_EMPTY_OBJ_RESP_NOT_FOUND))})
+            content = {@Content(examples = @ExampleObject(PROD_NOT_FOUND_ITEM_CODE_RESP_EXAMPLE))})
     public ResponseEntity<ProductByItemCodeResponse> getProductByItemCode(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = {@Content(examples = {
-                            @ExampleObject(name = "ItemCode Request 1", value = PROD_ITEM_CODE_REQ_EXAMPLE_1,
-                                    description = "``dayOffset`` is given"),
-                            @ExampleObject(name = "ItemCode Request 2", value = PROD_ITEM_CODE_REQ_EXAMPLE_2,
-                                    description = "``dayOffset`` is *not* given")})})
-            @RequestBody @Valid final ProductByItemCodeRequest request) {
-        final ProductByItemCodeResponse response =
-                productInventoryService.getProductByItemCode(request);
-        return new ResponseEntity<>(response, getSingleResourceResponseStatus(response.productDto()));
+        @ValidAlpha @RequestParam
+        @Parameter(description = "The code of the item", example = "MoonBerr") final String itemCode,
+        @Valid @ParameterObject final ProductQueryParamsDto request) {
+        final ProductByItemCodeResponse response = productInventoryService.getProductByItemCode(itemCode, request);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("quality")
+    @GetMapping("quality")
     @Operation(summary = "Get products by quality", description = "Get all products matching given ``quality``"
             + SORT_AND_OFFSET_AND_QUERY_DESC + SWAGGER_QUALITY_OP_RENDER)
     @ApiResponse(responseCode = "200", description = "Product(s) with matching ``quality`` found",
@@ -185,50 +262,66 @@ public class ProductRestController {
                     @ExampleObject(name = "Quality Response 2", value = PROD_QUALITY_RESP_EXAMPLE_2,
                             description = """
                             Retrieves all products with the given ``quality`` and does *not* off set the current date.
-                            """ + FUTURE_DATE_NOT_GIVEN_DESC)})})
-    @ApiResponse(responseCode = "404", description = "No products found with matching ``quality``",
-            content = {@Content(examples = @ExampleObject(PROD_EMPTY_ARRAY_RESP_NOT_FOUND))})
+                            """ + FUTURE_DATE_NOT_GIVEN_DESC),
+                    @ExampleObject(name = "No Products Found", value = PROD_EMPTY_ARRAY_RESP_EXAMPLE)})})
+    @ApiResponse(responseCode = "400", description = "Bad Request - A required parameter is missing or validation failed",
+            content = {@Content(examples = {
+                    @ExampleObject(name = "Missing Required Parameter", value = BAD_REQUEST_EXAMPLE_MISSING_PARAM,
+                            description = BAD_REQUEST_MISSING_PARAM_DESCRIPTION),
+                    @ExampleObject(name = "Method Not Allowed", value = BAD_REQUEST_EXAMPLE_METHOD_NOT_ALLOWED,
+                            description = BAD_REQUEST_METHOD_NOT_ALLOWED_DESCRIPTION),
+                    @ExampleObject(name = "Type Mismatch", value = BAD_REQUEST_EXAMPLE_METHOD_ARG_TYPE_MISMATCH,
+                            description = BAD_REQUEST_METHOD_ARG_TYPE_MISMATCH_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortBy", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_BY,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - sortOrder", value = BAD_REQUEST_EXAMPLE_VALIDATION_SORT_ORDER,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION),
+                    @ExampleObject(name = "Validation Error - limit", value = BAD_REQUEST_EXAMPLE_VALIDATION_LIMIT,
+                            description = BAD_REQUEST_VALIDATION_DESCRIPTION)})})
     public ResponseEntity<ProductsByQualityResponse> getProductsByQuality(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    content = {@Content(examples = {
-                            @ExampleObject(name = "Quality Request 1", value = PROD_QUALITY_REQ_EXAMPLE_1,
-                                    description = "``dayOffset`` is given"),
-                            @ExampleObject(name = "Quality Request 2", value = PROD_QUALITY_REQ_EXAMPLE_2,
-                                    description = "``dayOffset`` is *not* given")})})
-            @RequestBody @Valid final ProductsByQualityRequest request) {
+            @ValidQuality @RequestParam
+            @Parameter(description = "The quality of the item", example = "20") final Integer quality,
+            @Valid @ParameterObject final ProductQueryParamsDto request) {
         final ProductsByQualityResponse response =
-                productInventoryService.getProductsByQuality(request);
-        return new ResponseEntity<>(response, response.productDtoList().isEmpty()
-                ? HttpStatus.NOT_FOUND : HttpStatus.OK);
+                productInventoryService.getProductsByQuality(quality, request);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("create")
+    @PostMapping(value = "create", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create new product(s)", description = "Create new products in the inventory")
     @ApiResponse(responseCode = "201", description = "Product created successfully",
             content = {@Content(examples = { @ExampleObject(value = CREATE_PROD_RESP_EXAMPLE)})})
-    public ProductCreationResponse createProducts(
+    @ApiResponse(responseCode = "400", description = "Bad Request - Method Argument Not Valid",
+            content = {@Content(examples = {
+                    @ExampleObject(name = "Invalid Properties", value = BAD_REQUEST_INVALID_PROPS_CREATE_EXAMPLE,
+                            description = BAD_REQUEST_INVALID_PROPS_CREATE_DESCRIPTION)})})
+    public ResponseEntity<ProductCreateResponse> createProducts(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = {@Content(examples = {
                             @ExampleObject(name = "Creation Request 1", value = CREATE_PROD_REQ_EXAMPLE_1,
                                     description = "``quality`` is specified for each new inventory item separately"),
                             @ExampleObject(name = "Creation Request 2", value = CREATE_PROD_REQ_EXAMPLE_2,
                                     description = "``quality`` is specified for all new inventory items with same value")})})
-            @RequestBody @Valid final ProductCreationRequest request) {
-        return productInventoryService.createProducts(request);
+            @RequestBody @Valid final ProductCreateRequest request) {
+        final ProductCreateResponse response = productInventoryService.createProducts(request);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("delete")
+    @DeleteMapping(value = "delete", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Delete product(s)", description = "Delete products in the inventory")
     @ApiResponse(responseCode = "200", description = "Listed product(s) deleted successfully",
-            content = {@Content(schema = @Schema(implementation = ProductDeletionResponse.class))})
-    @ApiResponse(responseCode = "404", description = "No products found with any provided ``uuids``",
-            content = {@Content(examples = @ExampleObject(DELETE_PROD_EMPTY_ARRAY_RESP_EXAMPLE))})
-    public ResponseEntity<ProductDeletionResponse> deleteProductsById(
-            @RequestBody @Valid final ProductDeletionRequest request) {
-        final ProductDeletionResponse response =
-                productInventoryService.deleteProductsById(request);
-        return new ResponseEntity<>(response, response.deletedProducts().isEmpty()
-                ? HttpStatus.NOT_FOUND : HttpStatus.OK);
+            content = {@Content(examples = @ExampleObject(DELETE_PROD_RESP_EXAMPLE))})
+    @ApiResponse(responseCode = "400", description = "Bad Request - Http Message Not Readable",
+            content = {@Content(examples = {
+                    @ExampleObject(name = "Malformed UUID", value = BAD_REQUEST_MALFORMED_UUID_DELETE_EXAMPLE,
+                            description = BAD_REQUEST_MALFORMED_UUID_DELETE_DESCRIPTION)})})
+    public ResponseEntity<ProductDeleteResponse> deleteProductsById(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Deletion Request",
+                    content = @Content(examples = @ExampleObject(value = DELETE_PROD_REQ_EXAMPLE)))
+            @RequestBody @Valid final ProductDeleteRequest request) {
+        final ProductDeleteResponse response = productInventoryService.deleteProductsById(request);
+        return ResponseEntity.ok(response);
     }
 }

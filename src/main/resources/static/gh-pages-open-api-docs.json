@@ -7,7 +7,7 @@
       "name": "GPL 3",
       "url": "https://www.gnu.org/licenses/gpl-3.0.en.html?ref=itsfoss.com#license-text"
     },
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "servers": [
     {
@@ -122,7 +122,7 @@
           "200": {
             "description": "Product(s) with matching ``quality`` found",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "examples": {
                   "Quality Response 1": {
                     "description": "Retrieves all products with the given ``quality`` and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` have decremented by 5.\n\n\nThe days between ``stockDate`` and ``futureDate`` are used when computing these values.\n",
@@ -213,7 +213,7 @@
           "404": {
             "description": "No products found with matching ``quality``",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "example": {
                   "data": {
                     "count": 0,
@@ -273,7 +273,7 @@
           "200": {
             "description": "Product with matching ``itemName`` found",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "examples": {
                   "ItemName Response 1": {
                     "description": "Retrieves product with the given ``itemName`` and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` have decremented by 5.\n\n\nThe days between ``stockDate`` and ``futureDate`` are used when computing these values.\n",
@@ -327,7 +327,7 @@
           "404": {
             "description": "No product found with matching ``itemName``",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "example": {
                   "data": {
                     "product": {}
@@ -386,7 +386,7 @@
           "200": {
             "description": "Product with matching itemCode found",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "examples": {
                   "ItemCode Response 1": {
                     "description": "Retrieves product with the given ``itemCode`` and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` have decremented by 5.\n\n\nThe days between ``stockDate`` and ``futureDate`` are used when computing these values.\n",
@@ -440,7 +440,7 @@
           "404": {
             "description": "No product found with matching ``itemCode``",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "example": {
                   "data": {
                     "product": {}
@@ -489,7 +489,7 @@
           "200": {
             "description": "Product with matching ``uuid`` found",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "examples": {
                   "Id Response 1": {
                     "description": "Retrieves product with the given ``uuid`` and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` have decremented by 5.\n\n\nThe days between ``stockDate`` and ``futureDate`` are used when computing these values.\n",
@@ -543,7 +543,7 @@
           "404": {
             "description": "No product found with matching ``uuid``",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "example": {
                   "data": {
                     "product": {}
@@ -622,7 +622,7 @@
           "201": {
             "description": "Product created successfully",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "example": {
                   "data": {
                     "count": 1,
@@ -660,7 +660,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductAllProdsRequest"
+                "$ref": "#/components/schemas/ProductGetAllRequest"
               },
               "examples": {
                 "All Products Request 1": {
@@ -697,7 +697,7 @@
           "200": {
             "description": "Products found",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "examples": {
                   "All Products Response 1": {
                     "description": "Retrieves all products and off sets the current date by 5 days.\n\n\nNote that the ``futureDate`` property represents the adjusted date for calculations\nand that ``quality`` & ``sellBy`` values for each inventory item have updated\nin accordance with ``qualityOperation`` values.\n",
@@ -1062,7 +1062,7 @@
           "404": {
             "description": "No products found",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "example": {
                   "data": {
                     "count": 0,
@@ -1637,7 +1637,7 @@
           "200": {
             "description": "Listed product(s) deleted successfully",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProductDeletionResponse"
                 }
@@ -1647,7 +1647,7 @@
           "404": {
             "description": "No products found with any provided ``uuids``",
             "content": {
-              "application/json;version=1.0.0": {
+              "application/json": {
                 "example": {
                   "data": {
                     "deleted": []
@@ -1847,7 +1847,7 @@
           }
         }
       },
-      "ProductAllProdsRequest": {
+      "ProductGetAllRequest": {
         "type": "object",
         "properties": {
           "dataView": {

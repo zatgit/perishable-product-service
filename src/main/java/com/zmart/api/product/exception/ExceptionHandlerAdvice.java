@@ -13,10 +13,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.time.Instant;
 
 import static com.zmart.api.product.exception.ExceptionUtils.filterExceptionTraceElements;
 import static com.zmart.api.product.exception.ExceptionUtils.getCauseMessage;
@@ -72,6 +77,7 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
             final WebRequest request) {
         final ExceptionBuilder exBuilder =
                 ExceptionBuilder.builder()
+                        .timestamp(Instant.now())
                         .code(String.valueOf(status))
                         .message(getMessage(ex))
                         .exception(getExceptionName(ex))
@@ -97,6 +103,20 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         }
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Object> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return handleBadRequest(ex, ex.getMessage());
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(
+            MissingServletRequestParameterException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+        return handleBadRequest(ex, ex.getMessage());
+    }
+
     /**
      * Handles 400 client errors that are not overridden.
      */
@@ -107,6 +127,7 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         final StackTraceElement[] filteredTrace = filterExceptionTraceElements(ex);
         final ExceptionBuilder exBuilder =
                 ExceptionBuilder.builder()
+                        .timestamp(Instant.now())
                         .code(String.valueOf(status))
                         .message(message)
                         .exception(getExceptionName(ex))
@@ -130,6 +151,7 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         final StackTraceElement[] filteredTrace = filterExceptionTraceElements(ex);
         final ExceptionBuilder exBuilder =
                 ExceptionBuilder.builder()
+                        .timestamp(Instant.now())
                         .code(String.valueOf(status))
                         .message(INTERNAL_SERVER_ERROR.getReasonPhrase())
                         .cause(ExceptionBuilder.Cause.builder()
@@ -142,6 +164,20 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
                                 .lineNumber(getLineNumber(filteredTrace))
                                 .build())
                         .build();
+        return new ResponseEntity<>(exBuilder, status);
+    }
+
+    @ExceptionHandler({ResponseStatusException.class})
+    public ResponseEntity<Object> handleResponseStatusException(ResponseStatusException ex) {
+        final HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        final ExceptionBuilder exBuilder = ExceptionBuilder.builder()
+                .timestamp(Instant.now())
+                .code(String.valueOf(status))
+                .message(ex.getReason())
+                .cause(ExceptionBuilder.Cause.builder().build())
+                .exception(ex.getClass().getSimpleName())
+                .build();
+
         return new ResponseEntity<>(exBuilder, status);
     }
 }

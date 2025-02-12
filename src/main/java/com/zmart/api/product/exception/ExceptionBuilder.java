@@ -1,18 +1,23 @@
 package com.zmart.api.product.exception;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.annotation.PostConstruct;
 import lombok.Builder;
 
+import java.time.Instant;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @Builder
 @JsonInclude(NON_NULL)
-@JsonPropertyOrder({"code", "exception", "message", "cause"})
+@JsonPropertyOrder({"timestamp", "code", "exception", "message", "cause"})
 public record ExceptionBuilder(
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+        Instant timestamp,
         String code,
         String message,
         String exception,
