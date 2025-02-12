@@ -30,7 +30,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = {})
 public @interface ValidAlphaWithSpace {
 
-    String message() default "must only contain not blank, not special chars " +
+    String message() default "must only contain not blank, not special chars except spaces " +
             "sized between 1 & 50";
 
     Class<?>[] groups() default {};

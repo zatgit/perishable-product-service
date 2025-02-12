@@ -2,7 +2,7 @@ package com.zmart.api.product.validation.validator;
 
 import com.zmart.api.product.dto.InventoryDto;
 import com.zmart.api.product.dto.ProductCreationDto;
-import com.zmart.api.product.dto.request.ProductCreationRequest;
+import com.zmart.api.product.dto.request.ProductCreateRequest;
 import com.zmart.api.product.validation.ValidCreateProductQualities;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -13,10 +13,10 @@ import java.util.stream.IntStream;
 
 import static com.zmart.api.product.util.ProductConstants.PRODUCT_LIST;
 
-public class CreateProductQualitiesValidator implements ConstraintValidator<ValidCreateProductQualities, ProductCreationRequest> {
+public class CreateProductQualitiesValidator implements ConstraintValidator<ValidCreateProductQualities, ProductCreateRequest> {
 
     @Override
-    public boolean isValid(final ProductCreationRequest request, final ConstraintValidatorContext ctx) {
+    public boolean isValid(final ProductCreateRequest request, final ConstraintValidatorContext ctx) {
         ctx.disableDefaultConstraintViolation();
         //Request obj quality value is null & 1+ InventoryDto objs null
         final List<String> filteredQualityBothNull = request.productCreationDtoList().stream()

@@ -1,21 +1,19 @@
 package com.zmart.api.product.service;
 
-import com.zmart.api.product.dto.request.ProductAllProdsRequest;
-import com.zmart.api.product.dto.request.ProductByIdRequest;
-import com.zmart.api.product.dto.request.ProductByItemCodeRequest;
-import com.zmart.api.product.dto.request.ProductByItemNameRequest;
-import com.zmart.api.product.dto.request.ProductCreationRequest;
-import com.zmart.api.product.dto.request.ProductDeletionRequest;
-import com.zmart.api.product.dto.request.ProductsByQualityRequest;
+import com.zmart.api.product.dto.request.ProductCreateRequest;
+import com.zmart.api.product.dto.request.ProductDeleteRequest;
+import com.zmart.api.product.dto.request.ProductQueryParamsDto;
 import com.zmart.api.product.dto.response.ProductAllProdsResponse;
 import com.zmart.api.product.dto.response.ProductByIdResponse;
 import com.zmart.api.product.dto.response.ProductByItemCodeResponse;
 import com.zmart.api.product.dto.response.ProductByItemNameResponse;
-import com.zmart.api.product.dto.response.ProductCreationResponse;
-import com.zmart.api.product.dto.response.ProductDeletionResponse;
+import com.zmart.api.product.dto.response.ProductCreateResponse;
+import com.zmart.api.product.dto.response.ProductDeleteResponse;
 import com.zmart.api.product.dto.response.ProductsByQualityResponse;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 public interface ProductInventoryService {
@@ -23,47 +21,52 @@ public interface ProductInventoryService {
     /**
      * Gets all products.
      *
-     * @param request the request
+     * @param request query params
      * @return all products
      */
     ProductAllProdsResponse getAllProducts(
-            @NotNull ProductAllProdsRequest request);
+            @NotNull ProductQueryParamsDto request);
 
     /**
      * Gets product by id.
-     *
-     * @param request the id request
+     * @param uuid
+     * @param dayOffset
+     * @param request query params
      * @return products by id
      */
     ProductByIdResponse getProductById(
-            @NotNull ProductByIdRequest request);
+            @NotNull UUID uuid,
+            @NotNull Integer dayOffset);
 
     /**
      * Gets product by quality.
-     *
-     * @param request the quality request
+     * @param quality
+     * @param request query params
      * @return products by quality
      */
     ProductsByQualityResponse getProductsByQuality(
-            @NotNull ProductsByQualityRequest request);
+            @NotNull Integer quality,
+            @NotNull ProductQueryParamsDto request);
 
     /**
      * Gets product by item name.
-     *
-     * @param request the item name request
+     * @param itemName
+     * @param request query params
      * @return product by item name
      */
     ProductByItemNameResponse getProductByItemName(
-            @NotNull ProductByItemNameRequest request);
+            @NotNull String itemName,
+            @NotNull ProductQueryParamsDto request);
 
     /**
      * Gets product by item code.
-     *
-     * @param request the item code request
+     * @param itemCode
+     * @param request query params
      * @return product by item code
      */
     ProductByItemCodeResponse getProductByItemCode(
-            @NotNull ProductByItemCodeRequest request);
+            @NotNull String itemCode,
+            @NotNull ProductQueryParamsDto request);
 
     /**
      * Create products.
@@ -71,8 +74,8 @@ public interface ProductInventoryService {
      * @param request the product creation request
      * @return product creation response
      */
-    ProductCreationResponse createProducts(
-            @NotNull ProductCreationRequest request);
+    ProductCreateResponse createProducts(
+            @NotNull ProductCreateRequest request);
 
     /**
      * Delete products by id.
@@ -80,6 +83,6 @@ public interface ProductInventoryService {
      * @param request the product deletion request
      * @return product deletion response
      */
-    ProductDeletionResponse deleteProductsById(
-            @NotNull ProductDeletionRequest request);
+    ProductDeleteResponse deleteProductsById(
+            @NotNull ProductDeleteRequest request);
 }

@@ -30,11 +30,13 @@ Java 17, Spring 6, Spring Boot 3, Maven, Docker, Redis, Swagger
 $ mvn clean install && docker build -t zmart-api:latest . && docker run -p 8181:8181 zmart-food:latest .
 </pre>
 
-## Endpoints, Requests, Responses
+## API Endpoints and Documentation
 
 Navigate to Swagger on Github Pages to view endpoints with examples.
 
 https://zatgit.github.io/perishable-product-service
+
+![Swagger Preview](src/main/resources/assets/images/swagger-preview.gif)
 
 ## Usage
 
@@ -44,14 +46,15 @@ own custom depreciation rules.
 
 #### Exceptions and Validation
 
-Exceptions are handled globally with ExceptionHandlerAdvice and an exception builder.
-Most exceptions are thrown by Jakarta constraint violations during DTO binding or method-level validation.
+Exceptions are handled globally.
+Many exceptions are thrown by Jakarta constraint violations.
 Entity builders are validated using groups and custom validators.
 
 <details style="font:20px Arial;"><summary>Sample Exception Response</summary>
 
 ```json
 {
+    "timestamp": "2025-02-12T21:16:27.474Z",
     "code": "400 BAD_REQUEST",
     "exception": "MethodArgumentNotValidException",
     "message": "Invalid properties: quality must be less than or equal to 50, provided 80",

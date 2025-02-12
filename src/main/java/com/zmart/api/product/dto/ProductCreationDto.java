@@ -1,7 +1,7 @@
 package com.zmart.api.product.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.zmart.api.product.dto.request.ProductCreationRequest;
+import com.zmart.api.product.dto.request.ProductCreateRequest;
 import com.zmart.api.product.dto.request.ProductRequest;
 import com.zmart.api.product.validation.ValidAlpha;
 import com.zmart.api.product.validation.ValidAlphaWithSpace;
@@ -22,7 +22,7 @@ import static com.zmart.api.product.util.ProductUtility.trimQueryParam;
  * {@link #quality} validated by:
  * <br>{@link ValidCreateProductQualities}
  * <br>which annotates:
- * <br>{@link ProductCreationRequest}
+ * <br>{@link ProductCreateRequest}
  * */
 @With
 @Builder
