@@ -20,14 +20,10 @@ Java 17, Spring 6, Spring Boot 3, Maven, Docker, Redis, Swagger
 
 ## Getting Started
 
-#### Run Application
-
-<pre>$ mvn spring-boot:run</pre>
-
-#### Build a Container
+#### Run the Latest API Image from AWS ECR
 
 <pre>
-$ mvn clean install && docker build -t zmart-api:latest . && docker run -p 8181:8181 zmart-food:latest .
+$ docker run --pull=always -p 8181:8181 public.ecr.aws/l5s6j4h1/zmart-api:2.0.0
 </pre>
 
 ## API Endpoints and Documentation
