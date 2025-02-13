@@ -783,4 +783,17 @@ public final class ApiResponseExamples {
                 }
             }
             """;
+
+    public static final String BAD_REQUEST_NULL_QUALITY_PARENT_AND_CHILD_CREATE_EXAMPLE =
+            """
+            {
+                "timestamp": "2025-02-13T00:13:32.313Z",
+                "code": "400 BAD_REQUEST",
+                "exception": "MethodArgumentNotValidException",
+                "message": "Property productList0.quality must not be simultaneously null in productDto object & its child stock items",
+                "cause": {
+                    "message": "Validation failed for argument [0]... default message [[productList0.quality must not be simultaneously null in productDto object & its child stock items]]]"
+                }
+            }
+            """;
 }

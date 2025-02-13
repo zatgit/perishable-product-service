@@ -112,4 +112,9 @@ public final class ApiResponseDescriptions {
             """
             Method Argument Not Valid - Validation failed for create request properties.
             """;
+
+    public static final String BAD_REQUEST_NULL_QUALITY_PARENT_AND_CHILD_CREATE_DESCRIPTION =
+            """
+            Method Argument Not Valid - Must include quality in either JSON root or child elements.
+            """;
 }
