@@ -1,6 +1,6 @@
 package com.zmart.api.product.entity;
 
-import com.zmart.api.config.ProductLoggingListener;
+import com.zmart.api.logging.listener.ProductLoggingListener;
 import com.zmart.api.product.validation.ValidAlpha;
 import com.zmart.api.product.validation.ValidAlphaWithSpace;
 import com.zmart.api.product.validation.ValidNullableQuality;

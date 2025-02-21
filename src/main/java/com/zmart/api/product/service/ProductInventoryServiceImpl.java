@@ -1,12 +1,12 @@
 package com.zmart.api.product.service;
 
-import com.zmart.api.product.cache.CacheEvictCreate;
-import com.zmart.api.product.cache.CacheEvictDelete;
-import com.zmart.api.product.cache.CacheableAllProducts;
-import com.zmart.api.product.cache.CacheableId;
-import com.zmart.api.product.cache.CacheableItemCode;
-import com.zmart.api.product.cache.CacheableItemName;
-import com.zmart.api.product.cache.CacheableQuality;
+import com.zmart.api.cache.product.CacheEvictCreate;
+import com.zmart.api.cache.product.CacheEvictDelete;
+import com.zmart.api.cache.product.CacheableAllProducts;
+import com.zmart.api.cache.product.CacheableId;
+import com.zmart.api.cache.product.CacheableItemCode;
+import com.zmart.api.cache.product.CacheableItemName;
+import com.zmart.api.cache.product.CacheableQuality;
 import com.zmart.api.product.dto.InventoryDto;
 import com.zmart.api.product.dto.ProductDto;
 import com.zmart.api.product.dto.request.ProductCreateRequest;
@@ -45,7 +45,7 @@ import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
 import static com.zmart.api.product.dto.ProductMapper.PRODUCT_MAPPER;
-import static com.zmart.api.product.exception.ExceptionUtils.getProductNotFoundMessage;
+import static com.zmart.api.exception.ExceptionUtils.getProductNotFoundMessage;
 import static com.zmart.api.product.util.ProductConstants.ITEM_CODE;
 import static com.zmart.api.product.util.ProductConstants.ITEM_NAME;
 import static com.zmart.api.product.util.ProductConstants.PRODUCTS;

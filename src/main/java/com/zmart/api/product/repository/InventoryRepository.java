@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-@Transactional
 @Repository
 public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
     List<Inventory> deleteAllByUuidIn(@NonNull List<UUID> uuid);

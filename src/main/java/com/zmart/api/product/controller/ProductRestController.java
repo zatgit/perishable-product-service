@@ -1,6 +1,6 @@
 package com.zmart.api.product.controller;
 
-import com.zmart.api.product.controller.swagger.ProductRestControllerDocumentation;
+import com.zmart.api.docs.product.ProductRestControllerDocumentation;
 import com.zmart.api.product.dto.request.ProductCreateRequest;
 import com.zmart.api.product.dto.request.ProductDeleteRequest;
 import com.zmart.api.product.dto.request.ProductQueryParamsDto;
@@ -35,10 +35,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-import static com.zmart.api.product.util.ProductConstants.API_BASE_RESOURCE_PATH;
+import static com.zmart.api.docs.ApiDocsConstants.API_BASE_RESOURCE_PATH;
 
 @Validated
-@CrossOrigin
+@CrossOrigin(origins = {"${server.url.local}", "${server.url.production}"})
 @RestController
 @RequestMapping(
         path = API_BASE_RESOURCE_PATH + "product",

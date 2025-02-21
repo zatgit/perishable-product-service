@@ -1,7 +1,7 @@
 package com.zmart.api.product.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.zmart.api.config.InventoryLoggingListener;
+import com.zmart.api.logging.listener.InventoryLoggingListener;
 import com.zmart.api.product.validation.ValidAlpha;
 import com.zmart.api.product.validation.ValidAlphaWithSpace;
 import com.zmart.api.product.validation.ValidPositiveNumeral;

@@ -6,14 +6,18 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.1.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
-    <groupId>com.zmart.store</groupId>
+    <groupId>com.zmart.api</groupId>
     <artifactId>perishable-product-service</artifactId>
-    <version>2.0.1-SNAPSHOT</version>
+    <!-- CI/CD dynamically overrides fallback version -->
+    <version>${app.version}</version>
     <name>perishable-product-service</name>
     <description>Perishable product inventory tracking application</description>
     <properties>
+        <app.version>${maven.version}</app.version>
+        <!-- local development fallback version -->
+        <maven.version>0.0.1-SNAPSHOT</maven.version>
         <!-- Java version -->
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>

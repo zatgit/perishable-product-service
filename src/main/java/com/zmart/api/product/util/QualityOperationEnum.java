@@ -2,10 +2,10 @@ package com.zmart.api.product.util;
 
 import lombok.AllArgsConstructor;
 
-import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.QUALITY_OP_0_DESC;
-import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.QUALITY_OP_1_DESC;
-import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.QUALITY_OP_2_DESC;
-import static com.zmart.api.product.controller.swagger.ApiResponseDescriptions.QUALITY_OP_3_DESC;
+import static com.zmart.api.docs.product.ApiResponseDescriptions.QUALITY_OP_0_DESC;
+import static com.zmart.api.docs.product.ApiResponseDescriptions.QUALITY_OP_1_DESC;
+import static com.zmart.api.docs.product.ApiResponseDescriptions.QUALITY_OP_2_DESC;
+import static com.zmart.api.docs.product.ApiResponseDescriptions.QUALITY_OP_3_DESC;
 
 @AllArgsConstructor
 public enum QualityOperationEnum {
