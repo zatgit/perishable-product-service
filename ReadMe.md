@@ -4,9 +4,9 @@
 
 </div>
 
-A RESTful API for tracking a grocery store's inventory of perishable goods developed with Java and Spring.
+A RESTful API for tracking an e-grocery service's inventory of perishable goods developed with Java and Spring.
 
-
+### Author
 Zach Trembly
 
 <a href="https://www.linkedin.com/in/zat/"><img alt="My LinkedIn" src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
@@ -16,21 +16,23 @@ Zach Trembly
 ![Spring](https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?&style=for-the-badge&logo=redis&logoColor=white)
 
-Java 17, Spring 6, Spring Boot 3, Maven, Docker, Redis, Swagger
+Java 17, Spring Boot 3, Spring Data JPA, Spring Data Redis, Spring Cache, Hibernate, Maven, Docker, Swagger
 
 ## Getting Started
 
 #### Run the Latest API Image from AWS ECR
 
 <pre>
-$ docker run --pull=always -p 8181:8181 public.ecr.aws/l5s6j4h1/zmart-api:2.0.0
+$ docker run --pull=always -p 8181:8181 public.ecr.aws/l5s6j4h1/zmart-api:latest
 </pre>
 
 ## API Endpoints and Documentation
 
-Navigate to Swagger on Github Pages to view endpoints with examples.
+This API is deployed on AWS ECS (Fargate) behind a Load Balancer for scalability and high availability. 
 
-https://zatgit.github.io/perishable-product-service
+View the API documentation with examples and interact with the service at:
+
+🌐 https://api.zachtrembly.com/swagger-ui/index.html
 
 ![Swagger Preview](src/main/resources/assets/images/swagger-preview.gif)
 
@@ -42,9 +44,10 @@ own custom depreciation rules.
 
 #### Exceptions and Validation
 
-Exceptions are handled globally.
-Many exceptions are thrown by Jakarta constraint violations.
-Entity builders are validated using groups and custom validators.
+Exceptions are handled globally using a centralized exception handling mechanism.
+Jakarta Validation is used across all layers, including request validation in controllers, 
+business logic validation in services, and data validation in repositories.
+Entity builders are validated using groups, factories, and custom validators.
 
 <details style="font:20px Arial;"><summary>Sample Exception Response</summary>
 
@@ -63,18 +66,20 @@ Entity builders are validated using groups and custom validators.
 
 #### Logging
 
-Logs are handled with Slf4j, Logback, listeners, and by wrapping interceptors.
+Logging is implemented using SLF4J and Logback, with listeners and interceptor wrapping for enhanced logging capabilities.
 
 #### Caching
 
-Distributed caching is handled with Spring Data Redis. An embedded server is included for local development. 
-Key generation uses method-specific custom annotations, found in the ``cache`` package.
+Distributed caching is implemented using Spring Data Redis, with an embedded Redis server included for local development.
+Key generation is managed through method-specific custom annotations, located in the ``cache`` package.
 
-Two cron jobs refresh the cache daily and in 10 second intervals. These values can be adjusted dynamically if a 
-configmap has been implemented. You can view these jobs under the ``scheduledtasks`` actuator endpoint.
+Two cron jobs refresh the cache daily and every 10 seconds. 
+These intervals can be adjusted dynamically using environment variables or configuration management.  
+You can view these jobs under the ``scheduledtasks`` actuator endpoint.
 
-There is a cache REST controller in the cache package for manual cache inspection, creation, and eviction.
-The ``caches`` actuator endpoint has also been enabled.
+A cache REST controller is available in the ``cache`` package for manual cache inspection, creation, and eviction.  
+Additionally, the ``caches`` actuator endpoint is enabled for monitoring cache statistics.
+
 
 <details style="font:20px Arial;"><summary>Sample Key</summary></summary>
 
@@ -95,10 +100,14 @@ to use the server.</p>
 
 </details>
 
-## H2 (Database)
+## Persistence
+
+The project uses Spring Data JPA with Hibernate as the default ORM (Object-Relational Mapping) framework to manage persistence.
+Hibernate efficiently maps Java objects to relational database tables, handling SQL generation and execution.
+The database is H2 for local development.
 
 See [application-h2.properties](src/main/resources/application-h2.properties) 
-for console, username & password.
+for connection details (console, username & password).
 
 <hr></hr>
 
