@@ -1,7 +1,6 @@
 package com.zmart.api.product.service;
 
-import com.zmart.api.cache.product.CacheEvictCreate;
-import com.zmart.api.cache.product.CacheEvictDelete;
+import com.zmart.api.cache.aspect.CacheStatusTracked;
 import com.zmart.api.cache.product.CacheableAllProducts;
 import com.zmart.api.cache.product.CacheableId;
 import com.zmart.api.cache.product.CacheableItemCode;
@@ -28,6 +27,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -44,8 +44,8 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
-import static com.zmart.api.product.dto.ProductMapper.PRODUCT_MAPPER;
 import static com.zmart.api.exception.ExceptionUtils.getProductNotFoundMessage;
+import static com.zmart.api.product.dto.ProductMapper.PRODUCT_MAPPER;
 import static com.zmart.api.product.util.ProductConstants.ITEM_CODE;
 import static com.zmart.api.product.util.ProductConstants.ITEM_NAME;
 import static com.zmart.api.product.util.ProductConstants.PRODUCTS;
@@ -83,6 +83,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
     */
     @Transactional
     @CacheableAllProducts
+    @CacheStatusTracked
     public ProductAllProdsResponse getAllProducts(
             @NotNull final ProductQueryParamsDto request) {
         final Sort sort = helper.getProductSort(request);
@@ -101,6 +102,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
      */
     @Transactional
     @CacheableId
+    @CacheStatusTracked
     public ProductByIdResponse getProductById(
             @NotNull UUID uuid,
             @NotNull Integer dayOffset) {
@@ -119,6 +121,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
      */
     @Transactional
     @CacheableItemName
+    @CacheStatusTracked
     public ProductByItemNameResponse getProductByItemName(
             @NotNull final String itemName,
             @NotNull final ProductQueryParamsDto request) {
@@ -139,6 +142,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
      */
     @Transactional
     @CacheableItemCode
+    @CacheStatusTracked
     public ProductByItemCodeResponse getProductByItemCode(
             @NotNull final String itemCode,
             @NotNull final ProductQueryParamsDto request) {
@@ -159,6 +163,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
      */
     @Transactional
     @CacheableQuality
+    @CacheStatusTracked
     public ProductsByQualityResponse getProductsByQuality(
             @NotNull final Integer quality,
             @NotNull final ProductQueryParamsDto request) {
@@ -178,7 +183,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
      * {@inheritDoc}
      */
     @Transactional
-    @CacheEvictCreate
+    @CacheEvict(value = PRODUCTS, allEntries = true)
     public ProductCreateResponse createProducts(
             @NotNull final ProductCreateRequest request) {
         final List<Product> productList = PRODUCT_MAPPER.productCreationDtoListToProductList(
@@ -204,7 +209,7 @@ public class ProductInventoryServiceImpl implements ProductInventoryService {
      * {@inheritDoc}
      */
     @Transactional
-    @CacheEvictDelete
+    @CacheEvict(value = PRODUCTS, allEntries = true)
     public ProductDeleteResponse deleteProductsById(
             @NotNull final ProductDeleteRequest productDeleteRequest) {
         final List<Inventory> deletedProducts = inventoryRepository.deleteAllByUuidIn(

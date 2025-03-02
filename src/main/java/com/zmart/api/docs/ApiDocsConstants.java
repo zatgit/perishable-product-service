@@ -9,6 +9,6 @@ public final class ApiDocsConstants {
     public static final String GPL3_URL =
             "https://www.gnu.org/licenses/gpl-3.0.en.html?ref=itsfoss.com#license-text";
     public static final String API_DESCRIPTION = """
-            A RESTful API for tracking a grocery store's inventory of 
-            perishable goods developed with Java and Spring.""";
+            A RESTful API for tracking an e-grocery service's inventory of 
+            perishable goods.""";
 }
