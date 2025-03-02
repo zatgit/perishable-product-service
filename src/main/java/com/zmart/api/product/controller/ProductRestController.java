@@ -1,5 +1,6 @@
 package com.zmart.api.product.controller;
 
+import com.zmart.api.cache.aspect.CacheStatusHeader;
 import com.zmart.api.docs.product.ProductRestControllerDocumentation;
 import com.zmart.api.product.dto.request.ProductCreateRequest;
 import com.zmart.api.product.dto.request.ProductDeleteRequest;
@@ -53,6 +54,7 @@ public class ProductRestController implements ProductRestControllerDocumentation
     }
 
     @GetMapping("all")
+    @CacheStatusHeader
     public ResponseEntity<ProductAllProdsResponse> getAllProducts(
             @Valid @ParameterObject ProductQueryParamsDto request) {
         ProductAllProdsResponse response = productInventoryService.getAllProducts(request);
@@ -60,6 +62,7 @@ public class ProductRestController implements ProductRestControllerDocumentation
     }
 
     @GetMapping("id")
+    @CacheStatusHeader
     public ResponseEntity<ProductByIdResponse> getProductById(
             @NotNull @RequestParam final UUID uuid,
             @ValidPositiveNumeral @RequestParam(defaultValue = "0") final Integer dayOffset) {
@@ -68,6 +71,7 @@ public class ProductRestController implements ProductRestControllerDocumentation
     }
 
     @GetMapping("item-name")
+    @CacheStatusHeader
     public ResponseEntity<ProductByItemNameResponse> getProductByItemName(
             @ValidAlphaWithSpace @RequestParam final String itemName,
             @Valid @ParameterObject final ProductQueryParamsDto request) {
@@ -76,6 +80,7 @@ public class ProductRestController implements ProductRestControllerDocumentation
     }
 
     @GetMapping("item-code")
+    @CacheStatusHeader
     public ResponseEntity<ProductByItemCodeResponse> getProductByItemCode(
         @ValidAlpha @RequestParam final String itemCode,
         @Valid @ParameterObject final ProductQueryParamsDto request) {
@@ -84,6 +89,7 @@ public class ProductRestController implements ProductRestControllerDocumentation
     }
 
     @GetMapping("quality")
+    @CacheStatusHeader
     public ResponseEntity<ProductsByQualityResponse> getProductsByQuality(
             @ValidQuality @RequestParam final Integer quality,
             @Valid @ParameterObject final ProductQueryParamsDto request) {

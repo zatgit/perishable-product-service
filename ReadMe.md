@@ -4,7 +4,7 @@
 
 </div>
 
-A RESTful API for tracking an e-grocery service's inventory of perishable goods developed with Java and Spring.
+A RESTful API for tracking an e-grocery service's inventory of perishable goods.
 
 ### Author
 Zach Trembly
@@ -12,11 +12,15 @@ Zach Trembly
 <a href="https://www.linkedin.com/in/zat/"><img alt="My LinkedIn" src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
 
 ## Technologies
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Spring](https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
-![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?&style=for-the-badge&logo=redis&logoColor=white)
+[![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.dev.java/)
+[![Spring](https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=spring&logoColor=white)](https://spring.io/)
+[![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?&style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Hibernate](https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=hibernate&logoColor=white)](https://hibernate.org/)
+[![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)](https://maven.apache.org/)
+[![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://swagger.io/)
 
-Java 17, Spring Boot 3, Spring Data JPA, Spring Data Redis, Spring Cache, Hibernate, Maven, Docker, Swagger
+Java 17, Spring Boot 3, Spring Data JPA, Spring Data Redis, Spring Cache, Spring AOP, Hibernate, Maven, Docker, Swagger
 
 ## Getting Started
 
@@ -28,19 +32,18 @@ $ docker run --pull=always -p 8181:8181 public.ecr.aws/l5s6j4h1/zmart-api:latest
 
 ## API Endpoints and Documentation
 
-This API is deployed on AWS ECS (Fargate) behind a Load Balancer for scalability and high availability. 
+This API is deployed on AWS ECS (Fargate) behind a load balancer for scalability and high availability. 
 
 View the API documentation with examples and interact with the service at:
 
 🌐 https://api.zachtrembly.com/swagger-ui/index.html
 
+The service tracks each product's inventory data, including sell-by date and quality.
+Most items follow standard depreciation rules, where quality decreases by 1 as the sell-by date approaches. Some items follow custom depreciation rules, which are detailed in the request descriptions within the Swagger documentation.
+
 ![Swagger Preview](src/main/resources/assets/images/swagger-preview.gif)
 
-## Usage
-
-This inventory service tracks each product's inventory data, including sell by date and quality. Most items
-follow standard depreciation rules, decreasing the quality by 1 as the sell by date approaches. Some items follow their
-own custom depreciation rules.
+## Technical Architecture
 
 #### Exceptions and Validation
 
@@ -67,18 +70,22 @@ Entity builders are validated using groups, factories, and custom validators.
 #### Logging
 
 Logging is implemented using SLF4J and Logback, with listeners and interceptor wrapping for enhanced logging capabilities.
+Logs can be aggregated and viewed through your preferred monitoring and observability solution.
 
 #### Caching
 
 Distributed caching is implemented using Spring Data Redis, with an embedded Redis server included for local development.
 Key generation is managed through method-specific custom annotations, located in the ``cache`` package.
 
-Two cron jobs refresh the cache daily and every 10 seconds. 
-These intervals can be adjusted dynamically using environment variables or configuration management.  
-You can view these jobs under the ``scheduledtasks`` actuator endpoint.
+All cacheable API responses include an ``X-Cache-Status`` HTTP header, 
+which indicates whether the response was retrieved from the cache or freshly computed.
 
-A cache REST controller is available in the ``cache`` package for manual cache inspection, creation, and eviction.  
-Additionally, the ``caches`` actuator endpoint is enabled for monitoring cache statistics.
+A daily cron job refreshes the cache to ensure newly added inventory is included.
+This interval can be adjusted dynamically using environment variables or configuration management.  
+You can view all jobs under the ``/actuator/scheduledtasks`` endpoint.
+
+A cache REST controller is available for manual cache inspection, creation, and eviction.  
+The ``/actuator/caches`` endpoint is enabled for monitoring cache statistics.
 
 
 <details style="font:20px Arial;"><summary>Sample Key</summary></summary>
@@ -100,7 +107,7 @@ to use the server.</p>
 
 </details>
 
-## Persistence
+#### Persistence
 
 The project uses Spring Data JPA with Hibernate as the default ORM (Object-Relational Mapping) framework to manage persistence.
 Hibernate efficiently maps Java objects to relational database tables, handling SQL generation and execution.

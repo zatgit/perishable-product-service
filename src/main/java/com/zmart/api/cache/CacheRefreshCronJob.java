@@ -12,9 +12,8 @@ import static com.zmart.api.product.util.ProductConstants.PRODUCTS;
 public class CacheRefreshCronJob {
 
     @CacheEvict(value = PRODUCTS, allEntries = true)
-    @Scheduled(fixedRateString = "${pps.cron.cache.evict.seconds}")
-    @Scheduled(cron = "${pps.cron.cache.evict.daily}", zone = "${pps.timezone.zone:UTC}")
+    @Scheduled(cron = "${pps.cron.cache.evict.interval}", zone = "${pps.timezone.zone:UTC}")
     public void evictCache() {
-        log.debug("[Cache] Refreshing the Cache");
+        log.info("[Cache] Refreshing the Cache");
     }
 }

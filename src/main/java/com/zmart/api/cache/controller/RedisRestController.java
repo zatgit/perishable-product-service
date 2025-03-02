@@ -35,10 +35,10 @@ import static com.zmart.api.docs.cache.SwaggerCacheExampleConstants.GET_ALL_CACH
 import static com.zmart.api.docs.cache.SwaggerCacheExampleConstants.GET_ALL_CACHE_KEYS_RESP_SUCCESS_EXAMPLE;
 import static com.zmart.api.product.util.ProductConstants.EMPTY_STRING;
 
-@CrossOrigin
+@CrossOrigin(origins = {"${server.url.local}", "${server.url.production}"})
 @RestController
 @RequestMapping(
-        path = API_BASE_RESOURCE_PATH + "/redis",
+        path = API_BASE_RESOURCE_PATH + "redis",
         consumes = MediaType.ALL_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Cache", description = "Cache management APIs")
@@ -88,13 +88,12 @@ public class RedisRestController {
     @Operation(summary = "Get all Redis key-value pairs")
     @ApiResponse(responseCode = "200", description = "All key-value pairs fetched successfully",
             content = {@Content(examples = @ExampleObject(GET_ALL_CACHE_KEYS_RESP_SUCCESS_EXAMPLE))})
-    @ApiResponse(responseCode = "404", description = "Keys not found",
+    @ApiResponse(responseCode = "200", description = "Keys not found",
             content = {@Content(examples = @ExampleObject(GET_ALL_CACHE_KEYS_RESP_NOT_FOUND_EXAMPLE))})
     public ResponseEntity<Map<String, Set<String>>> getAllRedisKeys() {
         template.setKeySerializer(new StringRedisSerializer());
         final Set<String> keySet = Optional.ofNullable(template.keys("*")).orElse(Set.of());
-        return new ResponseEntity<>(Map.of("keys", keySet), keySet.isEmpty()
-                ? HttpStatus.NOT_FOUND : HttpStatus.OK);
+        return ResponseEntity.ok(Map.of("keys", keySet));
     }
 
     @GetMapping("evict")
